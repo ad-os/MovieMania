@@ -1,6 +1,7 @@
 package io.github.ad_os.moviemania.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -11,6 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.GridView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.adapter.MovieAdapter;
 import io.github.ad_os.moviemania.model.Movie;
 
 /**
@@ -103,6 +107,16 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(String moviesData) {
             try {
                 mMovies = parseMovieDetails(moviesData);
+                MovieAdapter movieAdapter = new MovieAdapter(getActivity(), mMovies);
+                GridView gridView = (GridView) getActivity().findViewById(R.id.movies_grid_view);
+                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Intent intent = new Intent(getActivity(), DetailActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                gridView.setAdapter(movieAdapter);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
