@@ -1,16 +1,18 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="@dimen/grid_view_padding"
-                tools:context=".ui.MainActivityFragment"
-                tools:showIn="@layout/activity_main">
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="#E0E0E0"
+             android:paddingTop="@dimen/grid_view_padding"
+             android:paddingLeft="@dimen/grid_view_padding"
+             tools:context=".ui.MainActivityFragment"
+             tools:showIn="@layout/activity_main">
 
-        <GridView
-            android:id="@+id/movies_grid_view"
-            android:numColumns="2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </GridView>
+    <GridView
+        android:id="@+id/movies_grid_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:numColumns="2">
+    </GridView>
 
 </FrameLayout>

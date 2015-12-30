@@ -6,6 +6,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +29,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.adapter.MovieAdapter;
 import io.github.ad_os.moviemania.model.Movie;
@@ -36,24 +40,35 @@ import io.github.ad_os.moviemania.model.Movie;
  */
 public class MainActivityFragment extends Fragment {
 
+    @Bind(R.id.movies_grid_view) GridView gridView;
     public static final String TAG = MainActivityFragment.class.getSimpleName();
+    public static final String MOVIE_DETAILS = "MOVIE_DETAILS";
     private Movie[] mMovies;
+
     public MainActivityFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        ButterKnife.bind(this, rootView);
+        if (isNetworkAvailable()) {
+            if (savedInstanceState == null || !savedInstanceState.containsKey("Movies")) {
+                FetchMovies fetchMovies = new FetchMovies();
+                fetchMovies.execute("popularity.desc");
+            } else {
+                mMovies = (Movie[]) savedInstanceState.getParcelableArray("Movies");
+                initializeAdapter(mMovies);
+            }
+        }
+        return rootView;
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        if (isNetworkAvailable()) {
-            FetchMovies fetchMovies = new FetchMovies();
-            fetchMovies.execute("popularity.desc");
-        }
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArray("Movies", mMovies);
+        super.onSaveInstanceState(outState);
     }
 
     public class FetchMovies extends AsyncTask<String, Void, String> {
@@ -107,20 +122,25 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(String moviesData) {
             try {
                 mMovies = parseMovieDetails(moviesData);
-                MovieAdapter movieAdapter = new MovieAdapter(getActivity(), mMovies);
-                GridView gridView = (GridView) getActivity().findViewById(R.id.movies_grid_view);
-                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Intent intent = new Intent(getActivity(), DetailActivity.class);
-                        startActivity(intent);
-                    }
-                });
-                gridView.setAdapter(movieAdapter);
+                initializeAdapter(mMovies);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void initializeAdapter(Movie[] movies) {
+        final Movie[] moviesData = movies;
+        final MovieAdapter movieAdapter = new MovieAdapter(getActivity(), moviesData);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra(MOVIE_DETAILS, moviesData);
+                startActivity(intent);
+            }
+        });
+        gridView.setAdapter(movieAdapter);
     }
 
     public Movie[] parseMovieDetails(String movieData) throws JSONException {
@@ -130,6 +150,7 @@ public class MainActivityFragment extends Fragment {
         final String MOVIE_PLOT = "overview";
         final String MOVIE_RATING = "vote_average";
         final String MOVIE_RELEASE_DATE = "release_date";
+        final String MOVIE_BACK_POSTER = "backdrop_path";
         JSONObject movieDataJson = new JSONObject(movieData);
         JSONArray moviesArray = movieDataJson.getJSONArray(MOVIES_ARRAY);
         Movie[] movies = new Movie[moviesArray.length()];
@@ -141,6 +162,7 @@ public class MainActivityFragment extends Fragment {
             movie.setPlotSynopsis(movieObject.getString(MOVIE_PLOT));
             movie.setUserRating(movieObject.getString(MOVIE_RATING));
             movie.setReleaseDate(movieObject.getString(MOVIE_RELEASE_DATE));
+            movie.setBackPosterString(movieObject.getString(MOVIE_BACK_POSTER));
             movies[i] = movie;
         }
         return movies;
