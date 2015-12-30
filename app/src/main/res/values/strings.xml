@@ -5,4 +5,14 @@
     <string name="release_date">Release Date</string>
     <string name="rating">Rating</string>
     <string name="synopsis">Synopsis</string>
+    <string name="title_preference">Sort By</string>
+    <string name="popular_string">Popular</string>
+    <string-array name="sortBy">
+        <item>Popular</item>
+        <item>Highest Rated</item>
+    </string-array>
+    <string-array name="sortByValues">
+        <item>popular.desc</item>
+        <item>vote_count.desc</item>
+    </string-array>
 </resources>
