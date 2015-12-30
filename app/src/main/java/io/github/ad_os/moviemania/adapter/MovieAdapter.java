@@ -23,7 +23,7 @@ import io.github.ad_os.moviemania.ui.DetailActivity;
  * Created by adhyan on 29/12/15.
  */
 public class MovieAdapter extends ArrayAdapter<Movie> {
-
+    public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
     private Context mContext;
     private Movie[] mMovies;
 
@@ -36,21 +36,31 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Movie movie = getItem(position);
-        final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+
         ViewHolder viewHolder;
         if (convertView == null) {
             viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(mContext).inflate(R.layout.grid_item, parent, false);
             viewHolder.poster = (ImageView) convertView.findViewById(R.id.movie_image);
+            viewHolder.rating = (TextView) convertView.findViewById(R.id.rating);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
-        Picasso.with(mContext).load(IMAGE_BASE_URL + movie.getPosterString()).into(viewHolder.poster);
+        Picasso.with(mContext)
+                .load(IMAGE_BASE_URL + movie.getPosterString())
+                .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        viewHolder.rating.setText(getFloat(Float.parseFloat(movie.getUserRating())/2) + "/5");
         return convertView;
+    }
+
+    public double getFloat(float value) {
+        double n = (double)Math.round(value * 10d) / 10d;
+        return n;
     }
 
     static class ViewHolder {
         ImageView poster;
+        TextView rating;
     }
 }

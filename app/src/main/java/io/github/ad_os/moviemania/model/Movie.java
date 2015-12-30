@@ -76,6 +76,7 @@ public class Movie implements Parcelable{
         dest.writeString(mPlotSynopsis);
         dest.writeString(mUserRating);
         dest.writeString(mReleaseDate);
+        dest.writeString(mBackPosterString);
     }
 
     private Movie(Parcel in) {
@@ -84,6 +85,7 @@ public class Movie implements Parcelable{
         mPlotSynopsis = in.readString();
         mUserRating = in.readString();
         mReleaseDate = in.readString();
+        mBackPosterString = in.readString();
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
