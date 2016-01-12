@@ -54,7 +54,7 @@ public class MoviesProvider extends ContentProvider{
                         null,
                         sortOrder
                 );
-                return retCursor;
+                break;
             }
             // Individual Movie based on Id
             case MOVIE_WITH_ID: {
@@ -67,12 +67,13 @@ public class MoviesProvider extends ContentProvider{
                         null,
                         sortOrder
                 );
-                return retCursor;
+                break;
             }
             default: {
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
         }
+        return retCursor;
     }
 
     @Nullable
@@ -107,7 +108,7 @@ public class MoviesProvider extends ContentProvider{
                 } else {
                     throw new android.database.SQLException("Failed to insert row into: " + uri);
                 }
-                return retUri;
+                break;
             }
             default:{
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -115,15 +116,66 @@ public class MoviesProvider extends ContentProvider{
         }
         //By default cursor adapter objects will get notifications from notifyChange()
         //getContext().getContentResolver().notifyChange(uri,null);
+        return retUri;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int numDeleted;
+        switch (sUriMatcher.match(uri)) {
+            case MOVIE:{
+                //returns the number of rows deleted
+                numDeleted = db.delete(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        selection,
+                        selectionArgs
+                );
+                break;
+            }
+            case MOVIE_WITH_ID:{
+                numDeleted = db.delete(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        MoviesContract.MovieEntry._ID + " = ? ",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))}
+                );
+                break;
+            }
+            default: {
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+            }
+        }
+        return numDeleted;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int numUpdated;
+        switch (sUriMatcher.match(uri)) {
+            case MOVIE:{
+                numUpdated = db.update(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        values,
+                        selection,
+                        selectionArgs
+                );
+                break;
+            }
+            case MOVIE_WITH_ID: {
+                numUpdated = db.update(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        values,
+                        MoviesContract.MovieEntry._ID + " = ? ",
+                        new String[] {String.valueOf(ContentUris.parseId(uri))}
+                );
+                break;
+            }
+            default: {
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+            }
+
+        }
+        return numUpdated;
     }
 }
