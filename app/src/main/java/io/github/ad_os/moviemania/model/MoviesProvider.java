@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import io.github.ad_os.moviemania.ui.MainActivityFragment;
+
 /**
  * Created by adhyan on 12/1/16.
  */
@@ -101,12 +103,26 @@ public class MoviesProvider extends ContentProvider{
         switch (sUriMatcher.match(uri)) {
             case MOVIE:{
                 //returns the row id of the newly inserted row.
-                long _id = db.insert(MoviesContract.MovieEntry.TABLE_MOVIES, null, values);
-                //insert unless it is already contained in the database.
-                if (_id > 0) {
-                    retUri = MoviesContract.MovieEntry.buildMovieUriWithId(_id);
+                Cursor cursor = db.query(
+                        MoviesContract.MovieEntry.TABLE_MOVIES,
+                        null,
+                        MoviesContract.MovieEntry._ID  + " = ? ",
+                        new String[]{String.valueOf(ContentUris.parseId(uri))},
+                        null,
+                        null,
+                        null
+                );
+                if (cursor == null) {
+                    long _id = db.insert(MoviesContract.MovieEntry.TABLE_MOVIES, null, values);
+                    //insert unless it is already contained in the database.
+                    if (_id > 0) {
+                        retUri = MoviesContract.MovieEntry.buildMovieUriWithId(_id);
+                    } else {
+                        throw new android.database.SQLException("Failed to insert row into: " + uri);
+                    }
                 } else {
-                    throw new android.database.SQLException("Failed to insert row into: " + uri);
+                    retUri = MoviesContract.MovieEntry
+                            .buildMovieUriWithId(cursor.getLong(MainActivityFragment.COL_MOVIE_ID));
                 }
                 break;
             }
@@ -115,7 +131,7 @@ public class MoviesProvider extends ContentProvider{
             }
         }
         //By default cursor adapter objects will get notifications from notifyChange()
-        //getContext().getContentResolver().notifyChange(uri,null);
+        getContext().getContentResolver().notifyChange(uri, null);
         return retUri;
     }
 
@@ -177,5 +193,38 @@ public class MoviesProvider extends ContentProvider{
 
         }
         return numUpdated;
+    }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        int numInserted = 0;
+        switch (sUriMatcher.match(uri)) {
+            case MOVIE: {
+                //allows multiple transactions
+                db.beginTransaction();
+                try {
+                    for (ContentValues value: values) {
+                        long _id = db.insert(
+                                MoviesContract.MovieEntry.TABLE_MOVIES,
+                                null,
+                                value
+                        );
+                        if (_id != -1) {
+                            numInserted++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                break;
+            }
+            default:{
+                return super.bulkInsert(uri, values);
+            }
+        }
+        return numInserted;
     }
 }

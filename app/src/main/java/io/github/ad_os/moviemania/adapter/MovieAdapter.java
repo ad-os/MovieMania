@@ -1,57 +1,43 @@
 package io.github.ad_os.moviemania.adapter;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
-import io.github.ad_os.moviemania.model.Movie;
-import io.github.ad_os.moviemania.ui.DetailActivity;
+import io.github.ad_os.moviemania.ui.MainActivityFragment;
 
 /**
- * Created by adhyan on 29/12/15.
+ * Created by adhyan on 13/1/16.
  */
-public class MovieAdapter extends ArrayAdapter<Movie> {
+public class MovieAdapter extends CursorAdapter {
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
-    private Context mContext;
-    private Movie[] mMovies;
 
-    public MovieAdapter(Context context, Movie[] movies) {
-        super(context, 0 ,movies);
-        mContext = context;
-        mMovies = movies;
+    public MovieAdapter(Context context, Cursor c, int flags) {
+        super(context, c, flags);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        Movie movie = getItem(position);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        View view = LayoutInflater.from(context).inflate(R.layout.grid_item, parent, false);
+        return view;
+    }
 
-        ViewHolder viewHolder;
-        if (convertView == null) {
-            viewHolder = new ViewHolder();
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.grid_item, parent, false);
-            viewHolder.poster = (ImageView) convertView.findViewById(R.id.movie_image);
-            viewHolder.rating = (TextView) convertView.findViewById(R.id.rating);
-            convertView.setTag(viewHolder);
-        } else {
-            viewHolder = (ViewHolder) convertView.getTag();
-        }
-        Picasso.with(mContext)
-                .load(IMAGE_BASE_URL + movie.getPosterString())
-                .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
-        viewHolder.rating.setText(getFloat(Float.parseFloat(movie.getUserRating())/2) + "/5");
-        return convertView;
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
+        ImageView poster = (ImageView) view.findViewById(R.id.movie_image);
+        TextView rating = (TextView) view.findViewById(R.id.rating);
+        Picasso.with(context)
+                .load(IMAGE_BASE_URL + cursor.getString(MainActivityFragment.COL_MOVIE_THUMBNAIL))
+                .placeholder(R.mipmap.backgroundvetical).into(poster);
+        rating.setText(getFloat(Float.parseFloat(cursor.getString(MainActivityFragment.COL_MOVIE_RATING))/2) + "/5");
     }
 
     public double getFloat(float value) {
@@ -59,8 +45,4 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
         return n;
     }
 
-    static class ViewHolder {
-        ImageView poster;
-        TextView rating;
-    }
 }
