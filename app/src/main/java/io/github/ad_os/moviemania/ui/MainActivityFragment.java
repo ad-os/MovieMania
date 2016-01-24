@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,10 +35,10 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
-    public static final String TAG = MainActivityFragment.class.getSimpleName();
+    public static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     public static final String MOVIE_DETAILS = "MOVIE_DETAILS";
     private MovieAdapter mMovieAdapter;
-    private static final String[] MOVIE_COLUMNS = {
+    public static final String[] MOVIE_COLUMNS = {
             MoviesContract.MovieEntry._ID,
             MoviesContract.MovieEntry.COLUMN_TITLE,
             MoviesContract.MovieEntry.COLUMN_THUMBNAIL,
@@ -86,11 +87,14 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                Log.d(LOG_TAG, "Adhyan");
                 if (cursor != null) {
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
                             .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
                                     cursor.getLong(MainActivityFragment.COL_MOVIE_ID)
                             ));
+                    Log.d(LOG_TAG, MoviesContract.MovieEntry.buildMovieUriWithId(
+                            cursor.getLong(MainActivityFragment.COL_MOVIE_ID)) + "");
                     startActivity(intent);
                 }
             }
