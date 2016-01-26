@@ -7,6 +7,8 @@
     <string name="synopsis">Synopsis</string>
     <string name="title_preference">Sort By</string>
     <string name="popular_string">Popular</string>
+    <string name="sync_account_type">ad-os.github.io</string>
+    <string name="content_authority">io.github.ad_os.moviemania</string>
     <string-array name="sortBy">
         <item>Popular</item>
         <item>Highest Rated</item>

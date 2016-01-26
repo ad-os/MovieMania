@@ -2,6 +2,7 @@ package io.github.ad_os.moviemania.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -27,6 +28,7 @@ import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.adapter.MovieAdapter;
 import io.github.ad_os.moviemania.model.MoviesContract;
+import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -68,8 +70,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(MOVIE_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -77,24 +79,17 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
-//        if (isNetworkAvailable()) {
-//            FetchMovies fetchMovies = new FetchMovies(getActivity());
-//            fetchMovies.execute("popularity.desc");
-//        }
         mMovieAdapter = new MovieAdapter(getActivity(), null, MOVIE_LOADER);
         gridView = (GridView) rootView.findViewById(R.id.movies_grid_view);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-                Log.d(LOG_TAG, "Adhyan");
                 if (cursor != null) {
                     Intent intent = new Intent(getActivity(), DetailActivity.class)
                             .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
                                     cursor.getLong(MainActivityFragment.COL_MOVIE_ID)
                             ));
-                    Log.d(LOG_TAG, MoviesContract.MovieEntry.buildMovieUriWithId(
-                            cursor.getLong(MainActivityFragment.COL_MOVIE_ID)) + "");
                     startActivity(intent);
                 }
             }
@@ -117,8 +112,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         } else {
             choice = "vote_count.desc";
         }
-        FetchMovies fetchMovies = new FetchMovies(getActivity());
-        fetchMovies.execute(choice);
+        SharedPreferences preferences = getActivity().getSharedPreferences(MainActivity.MOVIE_VIEW, Context.MODE_PRIVATE);
+        SharedPreferences.Editor e = preferences.edit();
+        e.putString("view", choice);
+        e.commit();
+        MovieSyncAdapter.syncImmediately(getActivity());
+        getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
         return true;
     }
 
@@ -138,6 +137,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, data.getCount() + "");
         mMovieAdapter.swapCursor(data);
     }
 
@@ -146,10 +146,4 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mMovieAdapter.swapCursor(null);
     }
 
-    private Boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-    }
 }
