@@ -1,8 +1,6 @@
 package io.github.ad_os.moviemania.ui;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -36,9 +34,11 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
+    private boolean mFavoriteLayout = false;
     private int mPosition = GridView.INVALID_POSITION;
     public static final String LOG_TAG = MainFragment.class.getSimpleName();
     private static final String SELECTED_KEY = "selected_position";
+    private static final String FAVORITE_BOOLEAN = "favorite_boolean";
     private MovieAdapter mMovieAdapter;
     public static final String[] MOVIE_COLUMNS = {
             MoviesContract.MovieEntry._ID,
@@ -83,11 +83,19 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                Intent intent;
                 if (cursor != null) {
-                    Intent intent = new Intent(getActivity(), Detail.class)
-                            .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
-                                    cursor.getLong(MainFragment.COL_MOVIE_ID)
-                            ));
+                    if ( !mFavoriteLayout) {
+                        intent = new Intent(getActivity(), Detail.class)
+                                .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
+                                        cursor.getLong(MainFragment.COL_MOVIE_ID)
+                                ));
+                    } else {
+                        intent = new Intent(getActivity(), Detail.class)
+                                .setData(MoviesContract.FavoriteMovieEntry.buildFavoriteMovieUriWithId(
+                                        cursor.getLong(MainFragment.COL_MOVIE_ID)
+                                ));
+                    }
                     startActivity(intent);
                 }
                 mPosition = position;
@@ -97,6 +105,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
+        if (savedInstanceState != null && savedInstanceState.containsKey(FAVORITE_BOOLEAN)) {
+            mFavoriteLayout =  savedInstanceState.getBoolean(FAVORITE_BOOLEAN);
+        }
         return rootView;
     }
 
@@ -104,6 +115,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onSaveInstanceState(Bundle outState) {
         if (mPosition != GridView.INVALID_POSITION) {
             outState.putInt(SELECTED_KEY, mPosition);
+            outState.putBoolean(FAVORITE_BOOLEAN, mFavoriteLayout);
         }
         super.onSaveInstanceState(outState);
     }
@@ -117,20 +129,31 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         String choice = "";
+        mPosition = GridView.INVALID_POSITION;
+        mFavoriteLayout = false;
+        gridView.smoothScrollToPosition(0);
         if (id == R.id.popular_label) {
             choice = "popularity.desc";
+            MovieSyncAdapter.syncImmediately(getActivity());
         } else if(id == R.id.highest_rated) {
             choice = "vote_count.desc";
+            MovieSyncAdapter.syncImmediately(getActivity());
+        } else if (id == R.id.favorite) {
+            mFavoriteLayout = true;
         }
         Utility.userChoice(getActivity(), choice);
-        MovieSyncAdapter.syncImmediately(getActivity());
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
         return true;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri movieUri = MoviesContract.MovieEntry.CONTENT_URI;
+        Uri movieUri;
+        if (mFavoriteLayout) {
+            movieUri = MoviesContract.FavoriteMovieEntry.CONTENT_URI;
+        } else {
+            movieUri = MoviesContract.MovieEntry.CONTENT_URI;
+        }
         return new CursorLoader(
                 getActivity(),
                 movieUri,

@@ -74,28 +74,41 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             @Override
             public void onClick(View view) {
                 Intent intent = getActivity().getIntent();
-                ContentValues[] values = new ContentValues[1];
                 ContentValues value = new ContentValues();
-                Cursor c = getActivity().getContentResolver().query(
+                String snackBar;
+                Cursor cursorMovie = getActivity().getContentResolver().query(
                         intent.getData(),
                         MainFragment.MOVIE_COLUMNS,
                         MoviesContract.MovieEntry._ID + " = ?",
                         new String[]{String.valueOf(ContentUris.parseId(intent.getData()))},
                         null
                 );
-                c.moveToFirst();
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_TITLE, c.getString(COL_MOVIE_TITLE));
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_THUMBNAIL, c.getString(COL_MOVIE_THUMBNAIL));
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_PLOT, c.getString(COL_MOVIE_PLOT));
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_POSTER, c.getString(COL_POSTER));
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RATING, c.getString(COL_MOVIE_RATING));
-                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE, c.getString(COL_RELEASE_DATE));
-                values[0] = value;
-                getActivity().getContentResolver().bulkInsert(
+                cursorMovie.moveToFirst();
+                Cursor cursorFavMovie = getActivity().getContentResolver().query(
                         MoviesContract.FavoriteMovieEntry.CONTENT_URI,
-                        values
+                        null,
+                        MoviesContract.FavoriteMovieEntry.COLUMN_TITLE + " =  ? ",
+                        new String[]{cursorMovie.getString(COL_MOVIE_TITLE)},
+                        null
                 );
-                Snackbar.make(view, "Movie saved to favorites", Snackbar.LENGTH_LONG)
+                if (!cursorFavMovie.moveToFirst()) {
+                    ContentValues[] values = new ContentValues[cursorMovie.getCount()];
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_TITLE, cursorMovie.getString(COL_MOVIE_TITLE));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_THUMBNAIL, cursorMovie.getString(COL_MOVIE_THUMBNAIL));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_PLOT, cursorMovie.getString(COL_MOVIE_PLOT));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_POSTER, cursorMovie.getString(COL_POSTER));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RATING, cursorMovie.getString(COL_MOVIE_RATING));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE, cursorMovie.getString(COL_RELEASE_DATE));
+                    values[0] = value;
+                    getActivity().getContentResolver().bulkInsert(
+                            MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                            values
+                    );
+                    snackBar = getActivity().getString(R.string.snackbar_new_notification);
+                } else {
+                    snackBar = getActivity().getString(R.string.snackBar_notification_already);
+                }
+                Snackbar.make(view,snackBar, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
