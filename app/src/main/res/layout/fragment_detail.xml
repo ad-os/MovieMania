@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="io.github.ad_os.moviemania.ui.DetailActivityFragment">
+    tools:context=".ui.DetailFragment">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            tools:context="io.github.ad_os.moviemania.ui.DetailActivityFragment"
+            tools:context=".ui.DetailFragment"
             tools:showIn="@layout/activity_detail">
             <LinearLayout
                 android:layout_width="match_parent"

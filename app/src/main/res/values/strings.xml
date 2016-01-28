@@ -17,4 +17,10 @@
         <item>popular.desc</item>
         <item>vote_count.desc</item>
     </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="popular_menu_string">Popular</string>
+    <string name="highest_rated_menu_string">Highest Rated</string>
+    <string name="favorite_movies_menu_string">Favorite Movies</string>
 </resources>

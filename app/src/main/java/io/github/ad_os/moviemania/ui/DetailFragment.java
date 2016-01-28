@@ -1,8 +1,9 @@
 package io.github.ad_os.moviemania.ui;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -27,16 +28,16 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
-import io.github.ad_os.moviemania.model.Movie;
+import io.github.ad_os.moviemania.model.MoviesContract;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int MOVIE_DETAIL_LOADER = 0;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
-    public static final String TAG = DetailActivity.class.getSimpleName();
+    public static final String LOG_TAG = Detail.class.getSimpleName();
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
     @Bind(R.id.movie_synopsis) TextView mSynopsis;
@@ -45,7 +46,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Bind(R.id.collapsing_toolbar) CollapsingToolbarLayout mCollapsingToolbarLayout;
     @Bind(R.id.fab) FloatingActionButton mFab;
 
-    public DetailActivityFragment() {
+    public static final int COL_MOVIE_TITLE = 1;
+    public static final int COL_MOVIE_THUMBNAIL = 2;
+    public static final int COL_MOVIE_PLOT = 3;
+    public static final int COL_MOVIE_RATING = 4;
+    public static final int COL_RELEASE_DATE = 5;
+    public static final int COL_POSTER = 6;
+
+
+
+    public DetailFragment() {
     }
 
     @Override
@@ -63,6 +73,28 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = getActivity().getIntent();
+                ContentValues[] values = new ContentValues[1];
+                ContentValues value = new ContentValues();
+                Cursor c = getActivity().getContentResolver().query(
+                        intent.getData(),
+                        MainFragment.MOVIE_COLUMNS,
+                        MoviesContract.MovieEntry._ID + " = ?",
+                        new String[]{String.valueOf(ContentUris.parseId(intent.getData()))},
+                        null
+                );
+                c.moveToFirst();
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_TITLE, c.getString(COL_MOVIE_TITLE));
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_THUMBNAIL, c.getString(COL_MOVIE_THUMBNAIL));
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_PLOT, c.getString(COL_MOVIE_PLOT));
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_POSTER, c.getString(COL_POSTER));
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RATING, c.getString(COL_MOVIE_RATING));
+                value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE, c.getString(COL_RELEASE_DATE));
+                values[0] = value;
+                getActivity().getContentResolver().bulkInsert(
+                        MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                        values
+                );
                 Snackbar.make(view, "Movie saved to favorites", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -80,7 +112,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         return new CursorLoader(
                 getActivity(),
                 intent.getData(),
-                MainActivityFragment.MOVIE_COLUMNS,
+                MainFragment.MOVIE_COLUMNS,
                 null,
                 null,
                 null
@@ -90,21 +122,21 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (!data.moveToFirst()) {return; }
-        String releaseDate = data.getString(MainActivityFragment.COL_RELEASE_DATE);
+        String releaseDate = data.getString(MainFragment.COL_RELEASE_DATE);
         mReleaseDate.setText(releaseDate);
 
-        String rating = data.getString(MainActivityFragment.COL_MOVIE_RATING);
+        String rating = data.getString(MainFragment.COL_MOVIE_RATING);
         mRatingBar.setRating(Float.parseFloat(rating)/2);
 
-        mCollapsingToolbarLayout.setTitle(data.getString(MainActivityFragment.COL_MOVIE_TITLE));
+        mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
 
-        String posterString = data.getString(MainActivityFragment.COL_POSTER);
+        String posterString = data.getString(MainFragment.COL_POSTER);
         Picasso.with(getActivity())
                 .load(IMAGE_BASE_URL + posterString)
                 .placeholder(R.mipmap.background)
                 .into(mImageView);
 
-        String synopsis = data.getString(MainActivityFragment.COL_MOVIE_PLOT);
+        String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);
     }
 

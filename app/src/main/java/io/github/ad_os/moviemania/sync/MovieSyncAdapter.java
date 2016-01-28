@@ -33,7 +33,7 @@ import io.github.ad_os.moviemania.BuildConfig;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.model.Movie;
 import io.github.ad_os.moviemania.model.MoviesContract;
-import io.github.ad_os.moviemania.ui.MainActivity;
+import io.github.ad_os.moviemania.ui.Main;
 
 /**
  * Created by adhyan on 27/1/16.
@@ -57,7 +57,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
         Log.d(LOG_TAG, "onPerformSync Called.");
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
-        SharedPreferences preferences = getContext().getSharedPreferences(MainActivity.MOVIE_VIEW, Context.MODE_PRIVATE);
+        SharedPreferences preferences = getContext().getSharedPreferences(Main.MOVIE_VIEW, Context.MODE_PRIVATE);
         String sortOrder = preferences.getString("view", "popularity.desc");
         final String BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
         final String SORT_PARAM = "sort_by";
@@ -93,7 +93,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 try {
                     bufferedReader.close();
                 } catch (final IOException e) {
-                    Log.e("MainActivityFragment", "Error closing stream", e);
+                    Log.e("MainFragment", "Error closing stream", e);
                 }
             }
         }

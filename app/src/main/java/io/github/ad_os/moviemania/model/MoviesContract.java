@@ -22,7 +22,6 @@ public class MoviesContract {
         public static final String COLUMN_RATING = "rating";
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_POSTER = "poster_string";
-        public static final String COLUMN_FAVORITE = "favorite";
 
         //create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI
@@ -32,7 +31,7 @@ public class MoviesContract {
         // create cursor of base type directory for multiple items
         public static final String CONTENT_DIR_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_MOVIES;
-        // create cursor of base time item for single entry
+        // create cursor of base type item for single entry
         public static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_MOVIES;
 
@@ -40,5 +39,36 @@ public class MoviesContract {
         public static Uri buildMovieUriWithId(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+    }
+
+    public static final class FavoriteMovieEntry implements BaseColumns {
+        //table name
+        public static final String TABLE_FAVORITES = "favorite";
+        //columns
+        public static final String COLUMN_TITLE = "title";
+        public static final String COLUMN_THUMBNAIL = "thumbnail_string";
+        public static final String COLUMN_PLOT = "plot";
+        public static final String COLUMN_RATING = "rating";
+        public static final String COLUMN_RELEASE_DATE = "release_date";
+        public static final String COLUMN_POSTER = "poster_string";
+        public static final String COLUMN_LOCAL_URL = "local_string_url";
+
+        //create content uri
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI
+                .buildUpon()
+                .appendPath(TABLE_FAVORITES)
+                .build();
+        // create cursor of base type directoy for multiple items
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_FAVORITES;
+        //create cursor of base type item for single enter
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + TABLE_FAVORITES;
+
+        //for building Uris on insertion
+        public static Uri buildFavoriteMovieUriWithId(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
     }
 }

@@ -14,7 +14,7 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
-import io.github.ad_os.moviemania.ui.MainActivityFragment;
+import io.github.ad_os.moviemania.ui.MainFragment;
 
 /**
  * Created by adhyan on 13/1/16.
@@ -39,9 +39,9 @@ public class MovieAdapter extends CursorAdapter {
 
         ViewHolder viewHolder = (ViewHolder) view.getTag();
         Picasso.with(context)
-                .load(IMAGE_BASE_URL + cursor.getString(MainActivityFragment.COL_MOVIE_THUMBNAIL))
+                .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
                 .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
-        viewHolder.rating.setText(getFloat(Float.parseFloat(cursor.getString(MainActivityFragment.COL_MOVIE_RATING))/2) + "/5");
+        viewHolder.rating.setText(getFloat(Float.parseFloat(cursor.getString(MainFragment.COL_MOVIE_RATING))/2) + "/5");
     }
 
     public double getFloat(float value) {

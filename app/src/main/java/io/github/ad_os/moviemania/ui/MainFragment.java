@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -26,6 +24,7 @@ import android.widget.GridView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.Utility;
 import io.github.ad_os.moviemania.adapter.MovieAdapter;
 import io.github.ad_os.moviemania.model.MoviesContract;
 import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
@@ -33,12 +32,13 @@ import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
-    public static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
-    public static final String MOVIE_DETAILS = "MOVIE_DETAILS";
+    private int mPosition = GridView.INVALID_POSITION;
+    public static final String LOG_TAG = MainFragment.class.getSimpleName();
+    private static final String SELECTED_KEY = "selected_position";
     private MovieAdapter mMovieAdapter;
     public static final String[] MOVIE_COLUMNS = {
             MoviesContract.MovieEntry._ID,
@@ -48,7 +48,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             MoviesContract.MovieEntry.COLUMN_RATING,
             MoviesContract.MovieEntry.COLUMN_RELEASE_DATE,
             MoviesContract.MovieEntry.COLUMN_POSTER,
-            MoviesContract.MovieEntry.COLUMN_FAVORITE
     };
 
     public static final int COL_MOVIE_ID = 0;
@@ -58,9 +57,8 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public static final int COL_MOVIE_RATING = 4;
     public static final int COL_RELEASE_DATE = 5;
     public static final int COL_POSTER = 6;
-    public static final int COL_MOVIE_FAVORITE = 7;
 
-    public MainActivityFragment() {}
+    public MainFragment() {}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,16 +84,28 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 if (cursor != null) {
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                    Intent intent = new Intent(getActivity(), Detail.class)
                             .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
-                                    cursor.getLong(MainActivityFragment.COL_MOVIE_ID)
+                                    cursor.getLong(MainFragment.COL_MOVIE_ID)
                             ));
                     startActivity(intent);
                 }
+                mPosition = position;
             }
         });
         gridView.setAdapter(mMovieAdapter);
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -106,16 +116,13 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        String choice;
+        String choice = "";
         if (id == R.id.popular_label) {
             choice = "popularity.desc";
-        } else {
+        } else if(id == R.id.highest_rated) {
             choice = "vote_count.desc";
         }
-        SharedPreferences preferences = getActivity().getSharedPreferences(MainActivity.MOVIE_VIEW, Context.MODE_PRIVATE);
-        SharedPreferences.Editor e = preferences.edit();
-        e.putString("view", choice);
-        e.commit();
+        Utility.userChoice(getActivity(), choice);
         MovieSyncAdapter.syncImmediately(getActivity());
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
         return true;
@@ -139,6 +146,9 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(LOG_TAG, data.getCount() + "");
         mMovieAdapter.swapCursor(data);
+        if (mPosition != GridView.INVALID_POSITION) {
+            gridView.smoothScrollToPosition(mPosition);
+        }
     }
 
     @Override

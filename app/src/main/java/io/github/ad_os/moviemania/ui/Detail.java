@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.model.Movie;
 
-public class DetailActivity extends AppCompatActivity {
+public class Detail extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
