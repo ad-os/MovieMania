@@ -2,6 +2,8 @@ package io.github.ad_os.moviemania.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,9 +40,13 @@ public class MovieAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
 
         ViewHolder viewHolder = (ViewHolder) view.getTag();
-        Picasso.with(context)
-                .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
-                .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        if (!isConnected(context)) {
+
+        } else {
+            Picasso.with(context)
+                    .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
+                    .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        }
         viewHolder.rating.setText(getFloat(Float.parseFloat(cursor.getString(MainFragment.COL_MOVIE_RATING))/2) + "/5");
     }
 
@@ -58,6 +64,15 @@ public class MovieAdapter extends CursorAdapter {
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
         }
+    }
+
+    public boolean isConnected(Context context){
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
     }
 
 }

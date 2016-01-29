@@ -28,6 +28,7 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.model.MovieImageUrl;
 import io.github.ad_os.moviemania.model.MoviesContract;
 
 /**
@@ -68,6 +69,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         mFab.setOnClickListener(new View.OnClickListener() {
@@ -83,7 +85,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         new String[]{String.valueOf(ContentUris.parseId(intent.getData()))},
                         null
                 );
-                cursorMovie.moveToFirst();
+                if (cursorMovie != null) {
+                    cursorMovie.moveToFirst();
+                }
                 Cursor cursorFavMovie = getActivity().getContentResolver().query(
                         MoviesContract.FavoriteMovieEntry.CONTENT_URI,
                         null,
@@ -99,6 +103,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_POSTER, cursorMovie.getString(COL_POSTER));
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RATING, cursorMovie.getString(COL_MOVIE_RATING));
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE, cursorMovie.getString(COL_RELEASE_DATE));
+                    movieImageUrl.setThumbnailImageUrl(cursorMovie.getString(COL_MOVIE_THUMBNAIL));
+                    movieImageUrl.setBackPosterImageUrl(cursorMovie.getString(COL_POSTER));
+                    FetchImages fetchImages = new FetchImages(getActivity(), movieImageUrl);
+                    fetchImages.execute();
                     values[0] = value;
                     getActivity().getContentResolver().bulkInsert(
                             MoviesContract.FavoriteMovieEntry.CONTENT_URI,

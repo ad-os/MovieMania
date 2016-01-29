@@ -22,6 +22,7 @@ public class MoviesContract {
         public static final String COLUMN_RATING = "rating";
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_POSTER = "poster_string";
+        public static final String COLUMN_LOCAL_URL = "local_string_url";
 
         //create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI

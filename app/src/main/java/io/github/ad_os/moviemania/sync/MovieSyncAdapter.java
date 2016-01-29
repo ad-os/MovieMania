@@ -45,6 +45,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
+    private String[] mImageUrls;
 
 
     public MovieSyncAdapter(Context context, boolean autoInitialize) {
