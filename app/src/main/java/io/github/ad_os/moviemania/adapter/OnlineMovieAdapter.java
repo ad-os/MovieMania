@@ -21,10 +21,11 @@ import io.github.ad_os.moviemania.ui.MainFragment;
 /**
  * Created by adhyan on 13/1/16.
  */
-public class MovieAdapter extends CursorAdapter {
+public class OnlineMovieAdapter extends CursorAdapter {
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+    public static final String LOG_TAG = OnlineMovieAdapter.class.getSimpleName();
 
-    public MovieAdapter(Context context, Cursor c, int flags) {
+    public OnlineMovieAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
     }
 
@@ -38,16 +39,12 @@ public class MovieAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-
         ViewHolder viewHolder = (ViewHolder) view.getTag();
-        if (!isConnected(context)) {
-
-        } else {
-            Picasso.with(context)
-                    .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
-                    .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
-        }
-        viewHolder.rating.setText(getFloat(Float.parseFloat(cursor.getString(MainFragment.COL_MOVIE_RATING))/2) + "/5");
+        Picasso.with(context)
+                .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
+                .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        viewHolder.rating
+                .setText(getFloat(Float.parseFloat(cursor.getString(MainFragment.COL_MOVIE_RATING))/2) + "/5");
     }
 
     public double getFloat(float value) {
@@ -64,15 +61,6 @@ public class MovieAdapter extends CursorAdapter {
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
         }
-    }
-
-    public boolean isConnected(Context context){
-        ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
     }
 
 }

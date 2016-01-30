@@ -1,13 +1,8 @@
 package io.github.ad_os.moviemania.ui;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -15,10 +10,9 @@ import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
 import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 
-public class Main extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
-    public static final String LOG_TAG  = Main.class.getSimpleName();
-    public static final String MOVIE_VIEW = "movie_view";
+    public static final String LOG_TAG  = MainActivity.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,13 +21,7 @@ public class Main extends AppCompatActivity {
         setSupportActionBar(toolbar);
         String choice = "popularity.desc";
         Utility.userChoice(this, choice);
-        Log.d("Test", "Main");
         MovieSyncAdapter.initializeSyncAdapter(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 
     @Override

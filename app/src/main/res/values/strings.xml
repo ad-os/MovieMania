@@ -25,4 +25,6 @@
     <string name="favorite_movies_menu_string">Favorite Movies</string>
     <string name="snackBar_notification_already">Movie already exists</string>
     <string name="snackbar_new_notification">Movie saved to favorites</string>
+    <string name="picture_count">PICTURE_COUNT</string>
+    <string name="title_activity_favorite">Favorite</string>
 </resources>

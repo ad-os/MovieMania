@@ -19,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
+import io.github.ad_os.moviemania.Utility;
 import io.github.ad_os.moviemania.model.MovieImageUrl;
 import io.github.ad_os.moviemania.model.MoviesContract;
 
@@ -29,7 +30,8 @@ public class FetchImages extends AsyncTask<Void, Void, Bitmap[]> {
 
     private Context mContext;
     private MovieImageUrl mMovieImageUrl;
-    public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+    public static final String IMAGE_THUMBNAIL_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+    public static final String IMAGE_POSTER_BASE_URL = "http://image.tmdb.org/t/p/w500/";
     public static final String LOG_TAG = FetchImages.class.getSimpleName();
 
     public FetchImages(Context context, MovieImageUrl movieImageUrl) {
@@ -47,7 +49,7 @@ public class FetchImages extends AsyncTask<Void, Void, Bitmap[]> {
         for (Bitmap bitmap : bitmaps) {
             Date d = new Date();
             CharSequence s  = DateFormat.format("MM-dd-yy hh-mm-ss", d.getTime());
-            File myPath = new File(directory, s + ".jpg");
+            File myPath = new File(directory, s + Utility.getNextCount(mContext) + ".jpg");
             FileOutputStream fos = null;
             try {
                 fos = new FileOutputStream(myPath);
@@ -57,7 +59,11 @@ public class FetchImages extends AsyncTask<Void, Void, Bitmap[]> {
             } finally {
                 if (null != fos) {
                     try {
-                        urls += myPath;
+                        if (urls.equals("")){
+                            urls += myPath;
+                        } else {
+                            urls = urls + "," + myPath;
+                        }
                         fos.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -76,8 +82,8 @@ public class FetchImages extends AsyncTask<Void, Void, Bitmap[]> {
 
     @Override
     protected Bitmap[] doInBackground(Void...params) {
-        String[] urls = new String[]{IMAGE_BASE_URL + mMovieImageUrl.getThumbnailImageUrl(),
-                IMAGE_BASE_URL + mMovieImageUrl.getBackPosterImageUrl()};
+        String[] urls = new String[]{IMAGE_THUMBNAIL_BASE_URL + mMovieImageUrl.getThumbnailImageUrl(),
+                IMAGE_POSTER_BASE_URL + mMovieImageUrl.getBackPosterImageUrl()};
         Bitmap[] bitmaps = new Bitmap[urls.length];
         for (int i = 0; i < urls.length; i++) {
             Bitmap bitmap;

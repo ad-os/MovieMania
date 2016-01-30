@@ -15,7 +15,6 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +37,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final int MOVIE_DETAIL_LOADER = 0;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
-    public static final String LOG_TAG = Detail.class.getSimpleName();
+    public static final String LOG_TAG = DetailActivity.class.getSimpleName();
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
     @Bind(R.id.movie_synopsis) TextView mSynopsis;
@@ -162,7 +161,5 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
+    public void onLoaderReset(Loader<Cursor> loader) {}
 }

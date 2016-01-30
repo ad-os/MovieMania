@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,7 +22,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
-import io.github.ad_os.moviemania.adapter.MovieAdapter;
+import io.github.ad_os.moviemania.adapter.OnlineMovieAdapter;
 import io.github.ad_os.moviemania.model.MoviesContract;
 import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 
@@ -34,12 +33,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
-    private boolean mFavoriteLayout = false;
     private int mPosition = GridView.INVALID_POSITION;
     public static final String LOG_TAG = MainFragment.class.getSimpleName();
     private static final String SELECTED_KEY = "selected_position";
-    private static final String FAVORITE_BOOLEAN = "favorite_boolean";
-    private MovieAdapter mMovieAdapter;
+    private OnlineMovieAdapter mOnlineMovieAdapter;
     public static final String[] MOVIE_COLUMNS = {
             MoviesContract.MovieEntry._ID,
             MoviesContract.MovieEntry.COLUMN_TITLE,
@@ -79,7 +76,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
-        mMovieAdapter = new MovieAdapter(getActivity(), null, MOVIE_LOADER);
+        mOnlineMovieAdapter = new OnlineMovieAdapter(getActivity(), null, MOVIE_LOADER);
         gridView = (GridView) rootView.findViewById(R.id.movies_grid_view);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -87,28 +84,18 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 Intent intent;
                 if (cursor != null) {
-                    if ( !mFavoriteLayout) {
-                        intent = new Intent(getActivity(), Detail.class)
-                                .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
-                                        cursor.getLong(MainFragment.COL_MOVIE_ID)
-                                ));
-                    } else {
-                        intent = new Intent(getActivity(), Detail.class)
-                                .setData(MoviesContract.FavoriteMovieEntry.buildFavoriteMovieUriWithId(
-                                        cursor.getLong(MainFragment.COL_MOVIE_ID)
-                                ));
-                    }
+                    intent = new Intent(getActivity(), DetailActivity.class)
+                            .setData(MoviesContract.MovieEntry.buildMovieUriWithId(
+                                    cursor.getLong(MainFragment.COL_MOVIE_ID)
+                            ));
                     startActivity(intent);
                 }
                 mPosition = position;
             }
         });
-        gridView.setAdapter(mMovieAdapter);
+        gridView.setAdapter(mOnlineMovieAdapter);
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
-        }
-        if (savedInstanceState != null && savedInstanceState.containsKey(FAVORITE_BOOLEAN)) {
-            mFavoriteLayout =  savedInstanceState.getBoolean(FAVORITE_BOOLEAN);
         }
         return rootView;
     }
@@ -117,7 +104,6 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onSaveInstanceState(Bundle outState) {
         if (mPosition != GridView.INVALID_POSITION) {
             outState.putInt(SELECTED_KEY, mPosition);
-            outState.putBoolean(FAVORITE_BOOLEAN, mFavoriteLayout);
         }
         super.onSaveInstanceState(outState);
     }
@@ -132,7 +118,6 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         int id = item.getItemId();
         String choice = "";
         mPosition = GridView.INVALID_POSITION;
-        mFavoriteLayout = false;
         gridView.smoothScrollToPosition(0);
         if (id == R.id.popular_label) {
             choice = "popularity.desc";
@@ -141,7 +126,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             choice = "vote_count.desc";
             MovieSyncAdapter.syncImmediately(getActivity());
         } else if (id == R.id.favorite) {
-            mFavoriteLayout = true;
+            Intent intent = new Intent(getActivity(), FavoriteActivity.class);
+            startActivity(intent);
         }
         Utility.userChoice(getActivity(), choice);
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
@@ -151,11 +137,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri movieUri;
-        if (mFavoriteLayout) {
-            movieUri = MoviesContract.FavoriteMovieEntry.CONTENT_URI;
-        } else {
-            movieUri = MoviesContract.MovieEntry.CONTENT_URI;
-        }
+        movieUri = MoviesContract.MovieEntry.CONTENT_URI;
         return new CursorLoader(
                 getActivity(),
                 movieUri,
@@ -169,8 +151,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.d(LOG_TAG, data.getCount() + "");
-        mMovieAdapter.swapCursor(data);
+        mOnlineMovieAdapter.swapCursor(data);
         if (mPosition != GridView.INVALID_POSITION) {
             gridView.smoothScrollToPosition(mPosition);
         }
@@ -178,7 +159,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mMovieAdapter.swapCursor(null);
+        mOnlineMovieAdapter.swapCursor(null);
     }
 
 }
