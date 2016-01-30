@@ -2,6 +2,11 @@ package io.github.ad_os.moviemania;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
 
 import static io.github.ad_os.moviemania.R.string.content_authority;
 
@@ -26,5 +31,19 @@ public class Utility {
         e.putInt(context.getString(R.string.picture_count), ++value);
         e.apply();
         return "_" + value;
+    }
+
+    public static void setImage(Context context, ImageView imageView, String url) {
+        Picasso.with(context)
+                .load(url)
+                .placeholder(R.mipmap.background)
+                .into(imageView);
+    }
+
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

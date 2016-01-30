@@ -15,6 +15,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.Utility;
 import io.github.ad_os.moviemania.model.MovieImageUrl;
 import io.github.ad_os.moviemania.model.MoviesContract;
 
@@ -151,10 +153,20 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
 
         String posterString = data.getString(MainFragment.COL_POSTER);
-        Picasso.with(getActivity())
-                .load(IMAGE_BASE_URL + posterString)
-                .placeholder(R.mipmap.background)
-                .into(mImageView);
+
+        if (Utility.isNetworkAvailable(getActivity())) {
+            Picasso.with(getActivity())
+                    .load(IMAGE_BASE_URL + posterString)
+                    .placeholder(R.mipmap.background)
+                    .into(mImageView);
+        } else {
+            String[] urls = data.getString(MainFragment.COLUMN_LOCAL_URL).split(",", 2);
+            Log.d(LOG_TAG, urls[1]);
+            String url =  "file://" + urls[1];
+            Picasso.with(getActivity())
+                    .load(url)
+                    .placeholder(R.mipmap.backgroundvetical).into(mImageView);
+        }
 
         String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);

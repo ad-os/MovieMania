@@ -1,5 +1,6 @@
 package io.github.ad_os.moviemania.ui;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.GridView;
 
@@ -39,6 +41,7 @@ public class FavoriteFragment extends Fragment implements LoaderManager.LoaderCa
             MoviesContract.FavoriteMovieEntry.COLUMN_LOCAL_URL
     };
 
+    public static final int COLUMN_FAVORITE__MOVIE_ID = 0;
     public  FavoriteFragment() {}
 
     @Override
@@ -55,6 +58,19 @@ public class FavoriteFragment extends Fragment implements LoaderManager.LoaderCa
         ButterKnife.bind(this, rootView);
         mOfflineMovieAdapter = new OfflineMovieAdapter(getActivity(), null, FAVORITE_MOVIE_LOADER);
         gridView = (GridView) rootView.findViewById(R.id.movies_grid_view);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                if (cursor != null) {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                            .setData(MoviesContract.FavoriteMovieEntry.buildFavoriteMovieUriWithId(
+                                    cursor.getLong(COLUMN_FAVORITE__MOVIE_ID)
+                            ));
+                    startActivity(intent);
+                }
+            }
+        });
         gridView.setAdapter(mOfflineMovieAdapter);
         return  rootView;
     }
