@@ -45,7 +45,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             MoviesContract.MovieEntry.COLUMN_RATING,
             MoviesContract.MovieEntry.COLUMN_RELEASE_DATE,
             MoviesContract.MovieEntry.COLUMN_POSTER,
-            MoviesContract.MovieEntry.COLUMN_LOCAL_URL
+            MoviesContract.MovieEntry.COLUMN_LOCAL_URL,
+            MoviesContract.MovieEntry.COLUMN_VIDEOS_URL
     };
 
     public static final int COL_MOVIE_ID = 0;
@@ -56,6 +57,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     public static final int COL_RELEASE_DATE = 5;
     public static final int COL_POSTER = 6;
     public static final int COLUMN_LOCAL_URL = 7;
+    public static final int COLUMN_VIDEOS_URL = 8;
 
     public MainFragment() {}
 

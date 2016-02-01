@@ -23,6 +23,9 @@ public class MoviesContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_POSTER = "poster_string";
         public static final String COLUMN_LOCAL_URL = "local_string_url";
+        public static final String COLUMN_VIDEOS_URL = "video_url";
+        public static final String COLUMN_REVIEWS = "reviews";
+        public static final String COLUMN_MOVIE_ID = "column_movie_id";
 
         //create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI
@@ -53,6 +56,9 @@ public class MoviesContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_POSTER = "poster_string";
         public static final String COLUMN_LOCAL_URL = "local_string_url";
+        public static final String COLUMN_VIDEOS_URL = "video_url";
+        public static final String COLUMN_REVIEWS = "reviews";
+        public static final String COLUMN_MOVIE_ID = "column_movie_id";
 
         //create content uri
         public static final Uri CONTENT_URI = BASE_CONTENT_URI

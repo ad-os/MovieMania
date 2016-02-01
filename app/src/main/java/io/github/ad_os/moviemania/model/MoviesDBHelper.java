@@ -13,7 +13,7 @@ import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 public class MoviesDBHelper extends SQLiteOpenHelper {
     public static final String LOG_TAG = MoviesDBHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "movies.db";
-    private static final int DATABASE_VERSION = 16;
+    private static final int DATABASE_VERSION = 17;
 
     public MoviesDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -30,7 +30,10 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.MovieEntry.COLUMN_RATING + " INTEGER NOT NULL, " +
                 MoviesContract.MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MoviesContract.MovieEntry.COLUMN_POSTER + " TEXT NOT NULL, " +
-                MoviesContract.MovieEntry.COLUMN_LOCAL_URL + " TEXT " +
+                MoviesContract.MovieEntry.COLUMN_LOCAL_URL + " TEXT, " +
+                MoviesContract.MovieEntry.COLUMN_VIDEOS_URL + " TEXT, " +
+                MoviesContract.MovieEntry.COLUMN_REVIEWS + " TEXT, " +
+                MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " TEXT " +
                 " );";
 
         final String CREATE_FAVORITE_TABLE = "CREATE TABLE " +
@@ -42,7 +45,10 @@ public class MoviesDBHelper extends SQLiteOpenHelper {
                 MoviesContract.FavoriteMovieEntry.COLUMN_RATING + " INTEGER NOT NULL, " +
                 MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MoviesContract.FavoriteMovieEntry.COLUMN_POSTER + " TEXT NOT NULL, " +
-                MoviesContract.FavoriteMovieEntry.COLUMN_LOCAL_URL + " TEXT " +
+                MoviesContract.FavoriteMovieEntry.COLUMN_LOCAL_URL + " TEXT, " +
+                MoviesContract.FavoriteMovieEntry.COLUMN_VIDEOS_URL + " TEXT, " +
+                MoviesContract.FavoriteMovieEntry.COLUMN_REVIEWS + " TEXT, " +
+                MoviesContract.FavoriteMovieEntry.COLUMN_MOVIE_ID + " TEXT " +
                 " );";
         db.execSQL(CREATE_MOVIE_TABLE);
         db.execSQL(CREATE_FAVORITE_TABLE);

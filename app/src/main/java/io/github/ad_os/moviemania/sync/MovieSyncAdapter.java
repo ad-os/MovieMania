@@ -33,6 +33,7 @@ import io.github.ad_os.moviemania.BuildConfig;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.model.Movie;
 import io.github.ad_os.moviemania.model.MoviesContract;
+import io.github.ad_os.moviemania.ui.FetchVideosAndReviews;
 
 /**
  * Created by adhyan on 27/1/16.
@@ -112,6 +113,9 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_RATING, movie.getUserRating());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, movie.getBackPosterString());
+                contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movie.getId());
+                FetchVideosAndReviews fetchVideosAndReviews = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
+                fetchVideosAndReviews.execute(new String[]{movie.getId(), "videos"});
                 cVVector.add(contentValues);
             }
             if (cVVector.size() > 0) {
@@ -151,6 +155,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
         final String MOVIE_RATING = "vote_average";
         final String MOVIE_RELEASE_DATE = "release_date";
         final String MOVIE_BACK_POSTER = "backdrop_path";
+        final String MOVIE_ID = "id";
         JSONObject movieDataJson = new JSONObject(movieData);
         JSONArray moviesArray = movieDataJson.getJSONArray(MOVIES_ARRAY);
         Movie[] movies = new Movie[moviesArray.length()];
@@ -163,6 +168,7 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
             movie.setUserRating(movieObject.getString(MOVIE_RATING));
             movie.setReleaseDate(movieObject.getString(MOVIE_RELEASE_DATE));
             movie.setBackPosterString(movieObject.getString(MOVIE_BACK_POSTER));
+            movie.setId(movieObject.getString(MOVIE_ID));
             movies[i] = movie;
         }
         return movies;

@@ -1,9 +1,11 @@
 package io.github.ad_os.moviemania.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -15,15 +17,12 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -39,6 +38,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final int MOVIE_DETAIL_LOADER = 0;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
+    public static final String YOUTUBE_BASE_URL = "http://img.youtube.com/vi/";
     public static final String LOG_TAG = DetailActivity.class.getSimpleName();
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
@@ -47,6 +47,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.collapsing_toolbar) CollapsingToolbarLayout mCollapsingToolbarLayout;
     @Bind(R.id.fab) FloatingActionButton mFab;
+    @Bind(R.id.video_thumbnail) ImageView mVideoThumbnail;
 
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
@@ -146,28 +147,35 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (!data.moveToFirst()) {return; }
         String releaseDate = data.getString(MainFragment.COL_RELEASE_DATE);
         mReleaseDate.setText(releaseDate);
-
         String rating = data.getString(MainFragment.COL_MOVIE_RATING);
         mRatingBar.setRating(Float.parseFloat(rating)/2);
-
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
-
         String posterString = data.getString(MainFragment.COL_POSTER);
-
+        String[] videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
         if (Utility.isNetworkAvailable(getActivity())) {
-            Picasso.with(getActivity())
-                    .load(IMAGE_BASE_URL + posterString)
-                    .placeholder(R.mipmap.background)
-                    .into(mImageView);
+            Utility.setImage(getActivity(), mImageView, IMAGE_BASE_URL + posterString);
         } else {
             String[] urls = data.getString(MainFragment.COLUMN_LOCAL_URL).split(",", 2);
-            Log.d(LOG_TAG, urls[1]);
             String url =  "file://" + urls[1];
-            Picasso.with(getActivity())
-                    .load(url)
-                    .placeholder(R.mipmap.backgroundvetical).into(mImageView);
+            Utility.setImage(getActivity(), mImageView, url);
         }
-
+        for (final String id : videoKeys) {
+            String url = YOUTUBE_BASE_URL + id + "/default.jpg";
+            Utility.setImage(getActivity(), mVideoThumbnail, url);
+            mVideoThumbnail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try{
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
+                        startActivity(intent);
+                    }catch (ActivityNotFoundException ex){
+                        Intent intent=new Intent(Intent.ACTION_VIEW,
+                                Uri.parse("http://www.youtube.com/watch?v="+id));
+                        startActivity(intent);
+                    }
+                }
+            });
+        }
         String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);
     }
