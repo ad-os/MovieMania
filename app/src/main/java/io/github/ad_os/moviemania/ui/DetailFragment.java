@@ -1,11 +1,9 @@
 package io.github.ad_os.moviemania.ui;
 
-import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -16,18 +14,26 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
+import io.github.ad_os.moviemania.adapter.VideoThumbnailRecyclerViewAdapter;
 import io.github.ad_os.moviemania.model.MovieImageUrl;
 import io.github.ad_os.moviemania.model.MoviesContract;
 
@@ -37,9 +43,10 @@ import io.github.ad_os.moviemania.model.MoviesContract;
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int MOVIE_DETAIL_LOADER = 0;
+    VideoThumbnailRecyclerViewAdapter mAdapter;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
-    public static final String YOUTUBE_BASE_URL = "http://img.youtube.com/vi/";
     public static final String LOG_TAG = DetailActivity.class.getSimpleName();
+    private ArrayList<String>  mkeysList;
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
     @Bind(R.id.movie_synopsis) TextView mSynopsis;
@@ -47,7 +54,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.collapsing_toolbar) CollapsingToolbarLayout mCollapsingToolbarLayout;
     @Bind(R.id.fab) FloatingActionButton mFab;
-    @Bind(R.id.video_thumbnail) ImageView mVideoThumbnail;
+    @Bind(R.id.recyclerview) RecyclerView mRecyclerView;
 
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
@@ -74,6 +81,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        mAdapter = new VideoThumbnailRecyclerViewAdapter(getActivity(), new ArrayList<String>());
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.HORIZONTAL, false));
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -152,6 +162,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
         String posterString = data.getString(MainFragment.COL_POSTER);
         String[] videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
+        mkeysList = new ArrayList<>(Arrays.asList(videoKeys));
         if (Utility.isNetworkAvailable(getActivity())) {
             Utility.setImage(getActivity(), mImageView, IMAGE_BASE_URL + posterString);
         } else {
@@ -159,23 +170,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             String url =  "file://" + urls[1];
             Utility.setImage(getActivity(), mImageView, url);
         }
-        for (final String id : videoKeys) {
-            String url = YOUTUBE_BASE_URL + id + "/default.jpg";
-            Utility.setImage(getActivity(), mVideoThumbnail, url);
-            mVideoThumbnail.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try{
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
-                        startActivity(intent);
-                    }catch (ActivityNotFoundException ex){
-                        Intent intent=new Intent(Intent.ACTION_VIEW,
-                                Uri.parse("http://www.youtube.com/watch?v="+id));
-                        startActivity(intent);
-                    }
-                }
-            });
-        }
+        mAdapter.addData(mkeysList);
         String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);
     }
