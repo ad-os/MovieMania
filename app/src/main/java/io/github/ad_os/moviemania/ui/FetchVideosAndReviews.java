@@ -63,7 +63,11 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
                 stringBuilder.append(line);
             }
             moviesData = stringBuilder.toString();
-            insertMovieVideos(moviesData);
+            if (movieType.equals("videos")) {
+                insertMovieVideos(moviesData);
+            } else {
+                insertMovieReviews(moviesData);
+            }
             return null;
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -77,9 +81,20 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
 
     public void insertMovieVideos(String moviesData) throws JSONException {
         String videoKeys = parseMovieVideos(moviesData);
-        //Log.d(LOG_TAG, videoKeys);
         ContentValues values = new ContentValues();
         values.put(MoviesContract.MovieEntry.COLUMN_VIDEOS_URL, videoKeys);
+        mContext.getContentResolver().update(
+                MoviesContract.MovieEntry.CONTENT_URI,
+                values,
+                MoviesContract.MovieEntry.COLUMN_TITLE + " = ? ",
+                new String[]{mMovieTile}
+        );
+    }
+
+    public void insertMovieReviews(String moviesData) throws JSONException {
+        String content = parseMovieReviews(moviesData);
+        ContentValues values = new ContentValues();
+        values.put(MoviesContract.MovieEntry.COLUMN_REVIEWS, content);
         mContext.getContentResolver().update(
                 MoviesContract.MovieEntry.CONTENT_URI,
                 values,
@@ -103,5 +118,26 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
             }
         }
         return videoKeys;
+    }
+
+    public String parseMovieReviews(String moviesData) throws JSONException {
+        final String REVIEWS_ARRAY = "results";
+        final String REVIEW_AUTHOR = "author";
+        final String REVIEW_CONTENT = "content";
+        String content = "";
+        String authors = "";
+        JSONObject reviewsDataJson = new JSONObject(moviesData);
+        JSONArray reviewsArray = reviewsDataJson.getJSONArray(REVIEWS_ARRAY);
+        for (int i = 0; i < reviewsArray.length(); i++) {
+            JSONObject reviewObject = reviewsArray.getJSONObject(i);
+            if (content.equals("")) {
+                authors += reviewObject.getString(REVIEW_AUTHOR);
+                content += reviewObject.getString(REVIEW_CONTENT);
+            } else {
+                authors += "|" + reviewObject.getString(REVIEW_AUTHOR);
+                content += "|" + reviewObject.getString(REVIEW_CONTENT);
+            }
+        }
+        return authors+ "||" + content;
     }
 }

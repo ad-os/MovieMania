@@ -4,17 +4,14 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.RequiresPermission;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
@@ -24,12 +21,12 @@ import io.github.ad_os.moviemania.Utility;
  */
 public class VideoThumbnailRecyclerViewAdapter extends RecyclerView.Adapter<VideoThumbnailRecyclerViewAdapter.ViewHolder> {
 
-    private ArrayList<String> mStrings;
+    private ArrayList<String> mVideos;
     private Context mContext;
     public static String LOG_TAG = VideoThumbnailRecyclerViewAdapter.class.getSimpleName();
     public static final String YOUTUBE_BASE_URL = "http://img.youtube.com/vi/";
     public VideoThumbnailRecyclerViewAdapter(Context context, ArrayList<String> items) {
-        mStrings = items;
+        mVideos = items;
         mContext =context;
     }
 
@@ -42,29 +39,14 @@ public class VideoThumbnailRecyclerViewAdapter extends RecyclerView.Adapter<Vide
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String id = mStrings.get(position);
-        String url = YOUTUBE_BASE_URL + id + "/default.jpg";
-        Log.d(LOG_TAG, "onBindViewHolder: " + url);
+        String id = mVideos.get(position);
+        String url = YOUTUBE_BASE_URL + id + "/0.jpg";
         Utility.setImage(mContext, holder.mImageView, url);
-//            imageView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    try{
-//                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
-//                        startActivity(intent);
-//                    }catch (ActivityNotFoundException ex){
-//                        Intent intent=new Intent(Intent.ACTION_VIEW,
-//                                Uri.parse("http://www.youtube.com/watch?v="+id));
-//                        startActivity(intent);
-//                    }
-//                }
-//            });
     }
 
     @Override
     public int getItemCount() {
-        Log.d(LOG_TAG, "getItemCount: " + mStrings.size());
-        return mStrings.size();
+        return mVideos.size();
     }
 
     @Override
@@ -73,16 +55,30 @@ public class VideoThumbnailRecyclerViewAdapter extends RecyclerView.Adapter<Vide
     }
 
     public void addData(ArrayList<String> data) {
-        mStrings.clear();
-        mStrings.addAll(data);
+        mVideos.clear();
+        mVideos.addAll(data);
         notifyDataSetChanged();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ImageView mImageView;
         public ViewHolder(View itemView) {
             super(itemView);
             mImageView = (ImageView) itemView.findViewById(R.id.thumbnail_view);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            String id = mVideos.get(getLayoutPosition());
+            try{
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
+                mContext.startActivity(intent);
+            }catch (ActivityNotFoundException ex){
+                Intent intent=new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("http://www.youtube.com/watch?v="+id));
+                mContext.startActivity(intent);
+            }
         }
     }
 }

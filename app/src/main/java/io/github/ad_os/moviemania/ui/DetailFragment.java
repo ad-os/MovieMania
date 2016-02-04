@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,15 +28,17 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.regex.Pattern;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
+import io.github.ad_os.moviemania.adapter.ReviewRecyclerViewAdapter;
 import io.github.ad_os.moviemania.adapter.VideoThumbnailRecyclerViewAdapter;
 import io.github.ad_os.moviemania.model.MovieImageUrl;
 import io.github.ad_os.moviemania.model.MoviesContract;
+import io.github.ad_os.moviemania.model.Review;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -43,10 +46,12 @@ import io.github.ad_os.moviemania.model.MoviesContract;
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int MOVIE_DETAIL_LOADER = 0;
-    VideoThumbnailRecyclerViewAdapter mAdapter;
+    VideoThumbnailRecyclerViewAdapter mVideoThumbailAdapter;
+    ReviewRecyclerViewAdapter mReviewAdapter;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
     public static final String LOG_TAG = DetailActivity.class.getSimpleName();
     private ArrayList<String>  mkeysList;
+    private ArrayList<Review> mReviewsList;
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
     @Bind(R.id.movie_synopsis) TextView mSynopsis;
@@ -54,7 +59,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.collapsing_toolbar) CollapsingToolbarLayout mCollapsingToolbarLayout;
     @Bind(R.id.fab) FloatingActionButton mFab;
-    @Bind(R.id.recyclerview) RecyclerView mRecyclerView;
+    @Bind(R.id.recyclerview_videos) RecyclerView mVideoRecyclerView;
+    @Bind(R.id.recyclerview_reviews) RecyclerView mReviewRecyclerView;
 
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
@@ -62,6 +68,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public static final int COL_MOVIE_RATING = 4;
     public static final int COL_RELEASE_DATE = 5;
     public static final int COL_POSTER = 6;
+    public static final int COLUMN_LOCAL_URL = 7;
+    public static final int COL_VIDEO_URL = 8;
+    public static final int COL_REVIEWS = 9;
 
 
 
@@ -81,9 +90,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
-        mAdapter = new VideoThumbnailRecyclerViewAdapter(getActivity(), new ArrayList<String>());
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.HORIZONTAL, false));
+        mVideoThumbailAdapter = new VideoThumbnailRecyclerViewAdapter(getActivity(), new ArrayList<String>());
+        mVideoRecyclerView.setAdapter(mVideoThumbailAdapter);
+        mVideoRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.HORIZONTAL, false));
+        mReviewAdapter = new ReviewRecyclerViewAdapter(getActivity(), new ArrayList<Review>());
+        mReviewRecyclerView.setAdapter(mReviewAdapter);
+        mReviewRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -115,6 +127,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_POSTER, cursorMovie.getString(COL_POSTER));
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RATING, cursorMovie.getString(COL_MOVIE_RATING));
                     value.put(MoviesContract.FavoriteMovieEntry.COLUMN_RELEASE_DATE, cursorMovie.getString(COL_RELEASE_DATE));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_VIDEOS_URL, cursorMovie.getString(COL_VIDEO_URL));
+                    value.put(MoviesContract.FavoriteMovieEntry.COLUMN_REVIEWS, cursorMovie.getString(COL_REVIEWS));
                     movieImageUrl.setThumbnailImageUrl(cursorMovie.getString(COL_MOVIE_THUMBNAIL));
                     movieImageUrl.setBackPosterImageUrl(cursorMovie.getString(COL_POSTER));
                     FetchImages fetchImages = new FetchImages(getActivity(), movieImageUrl);
@@ -162,7 +176,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
         String posterString = data.getString(MainFragment.COL_POSTER);
         String[] videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
+        String[] authorAndContentList = data.getString(MainFragment.COLUMN_REVIEWS).split(Pattern.quote("||"));
+        String[] authors = authorAndContentList[0].split(Pattern.quote("|"));
+        String[] content = authorAndContentList[1].split(Pattern.quote("|"));
+        Log.d(LOG_TAG, "onLoadFinished: " + Arrays.asList(authors).toString());
+        Log.d(LOG_TAG, "onLoadFinished: " + Arrays.asList(content   ).toString());
         mkeysList = new ArrayList<>(Arrays.asList(videoKeys));
+        mReviewsList = new ArrayList<Review>();
+        for (int i = 0; i < authors.length; i++) {
+            Review review = new Review();
+            review.setAuthor(authors[i]);
+            review.setContent(content[i]);
+            mReviewsList.add(review);
+        }
         if (Utility.isNetworkAvailable(getActivity())) {
             Utility.setImage(getActivity(), mImageView, IMAGE_BASE_URL + posterString);
         } else {
@@ -170,7 +196,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             String url =  "file://" + urls[1];
             Utility.setImage(getActivity(), mImageView, url);
         }
-        mAdapter.addData(mkeysList);
+        mVideoThumbailAdapter.addData(mkeysList);
+        mReviewAdapter.addData(mReviewsList);
         String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);
     }

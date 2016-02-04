@@ -27,4 +27,5 @@
     <string name="snackbar_new_notification">Movie saved to favorites</string>
     <string name="picture_count">PICTURE_COUNT</string>
     <string name="title_activity_favorite">Favorite</string>
+    <string name="reviews">Reviews</string>
 </resources>

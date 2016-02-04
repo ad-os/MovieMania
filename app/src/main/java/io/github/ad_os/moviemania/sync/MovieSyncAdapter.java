@@ -114,8 +114,10 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, movie.getBackPosterString());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movie.getId());
-                FetchVideosAndReviews fetchVideosAndReviews = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
-                fetchVideosAndReviews.execute(new String[]{movie.getId(), "videos"});
+                FetchVideosAndReviews fetchVideos = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
+                fetchVideos.execute(new String[]{movie.getId(), "videos"});
+                FetchVideosAndReviews fetchReviews = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
+                fetchReviews.execute(new String[]{movie.getId(), "reviews"});
                 cVVector.add(contentValues);
             }
             if (cVVector.size() > 0) {
