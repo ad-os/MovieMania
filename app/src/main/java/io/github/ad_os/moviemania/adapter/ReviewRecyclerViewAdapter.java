@@ -43,9 +43,7 @@ public class ReviewRecyclerViewAdapter extends RecyclerView.Adapter<ReviewRecycl
     public void onBindViewHolder(ViewHolder holder, int position) {
         Review review = mReviews.get(position);
         holder.authorTextView.setText(review.getAuthor());
-        holder.authorTextView.setMovementMethod(new ScrollingMovementMethod());
         holder.contentTextView.setText(review.getContent());
-        holder.contentTextView.setMovementMethod(new ScrollingMovementMethod());
     }
 
     @Override

@@ -220,6 +220,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:text="@string/reviews"
+                    android:id="@+id/review_heading"
                     android:textColor="#212121"
                     android:textSize="20sp"
                     android:gravity="center"
@@ -227,7 +228,6 @@
                     android:layout_height="wrap_content"/>
 
             </android.support.v7.widget.CardView>
-
             <android.support.v7.widget.RecyclerView
                 android:layout_marginTop="5dp"
                 android:layout_width="match_parent"

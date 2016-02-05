@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -50,6 +51,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     ReviewRecyclerViewAdapter mReviewAdapter;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
     public static final String LOG_TAG = DetailActivity.class.getSimpleName();
+    public static final String DETAIL_URI = "URI";
+    private Uri mUri;
     private ArrayList<String>  mkeysList;
     private ArrayList<Review> mReviewsList;
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
@@ -61,6 +64,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.fab) FloatingActionButton mFab;
     @Bind(R.id.recyclerview_videos) RecyclerView mVideoRecyclerView;
     @Bind(R.id.recyclerview_reviews) RecyclerView mReviewRecyclerView;
+    @Bind(R.id.review_heading) TextView mReviewHeading;
 
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
@@ -87,6 +91,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+        }
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
@@ -152,18 +160,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if (intent == null) {
-            return null;
+        if (null != mUri) {
+            return new CursorLoader(
+                    getActivity(),
+                    mUri,
+                    MainFragment.MOVIE_COLUMNS,
+                    null,
+                    null,
+                    null
+            );
         }
-        return new CursorLoader(
-                getActivity(),
-                intent.getData(),
-                MainFragment.MOVIE_COLUMNS,
-                null,
-                null,
-                null
-        );
+        return null;
     }
 
     @Override
@@ -176,18 +183,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
         String posterString = data.getString(MainFragment.COL_POSTER);
         String[] videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
-        String[] authorAndContentList = data.getString(MainFragment.COLUMN_REVIEWS).split(Pattern.quote("||"));
-        String[] authors = authorAndContentList[0].split(Pattern.quote("|"));
-        String[] content = authorAndContentList[1].split(Pattern.quote("|"));
-        Log.d(LOG_TAG, "onLoadFinished: " + Arrays.asList(authors).toString());
-        Log.d(LOG_TAG, "onLoadFinished: " + Arrays.asList(content   ).toString());
         mkeysList = new ArrayList<>(Arrays.asList(videoKeys));
-        mReviewsList = new ArrayList<Review>();
-        for (int i = 0; i < authors.length; i++) {
-            Review review = new Review();
-            review.setAuthor(authors[i]);
-            review.setContent(content[i]);
-            mReviewsList.add(review);
+        String[] authorAndContentList = data.getString(MainFragment.COLUMN_REVIEWS).split(Pattern.quote("||"));
+        if (authorAndContentList.length > 0) {
+            String[] authors = authorAndContentList[0].split(Pattern.quote("|"));
+            String[] content = authorAndContentList[1].split(Pattern.quote("|"));
+            mReviewsList = new ArrayList<Review>();
+            for (int i = 0; i < authors.length; i++) {
+                Review review = new Review();
+                review.setAuthor(authors[i]);
+                review.setContent(content[i]);
+                mReviewsList.add(review);
+            }
+            mReviewAdapter.addData(mReviewsList);
+        } else {
+            mReviewHeading.setText("No Review Available");
         }
         if (Utility.isNetworkAvailable(getActivity())) {
             Utility.setImage(getActivity(), mImageView, IMAGE_BASE_URL + posterString);
@@ -197,7 +207,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             Utility.setImage(getActivity(), mImageView, url);
         }
         mVideoThumbailAdapter.addData(mkeysList);
-        mReviewAdapter.addData(mReviewsList);
         String synopsis = data.getString(MainFragment.COL_MOVIE_PLOT);
         mSynopsis.setText(synopsis);
     }

@@ -1,9 +1,5 @@
-<fragment android:id="@+id/fragment"
-          android:name="io.github.ad_os.moviemania.ui.DetailFragment"
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:app="http://schemas.android.com/apk/res-auto"
-          xmlns:tools="http://schemas.android.com/tools"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          app:layout_behavior="@string/appbar_scrolling_view_behavior"
-          tools:layout="@layout/fragment_detail"/>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:id="@+id/movie_detail_fragment"
+             android:layout_height="match_parent">
+</FrameLayout>
