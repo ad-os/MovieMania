@@ -15,7 +15,7 @@ import static io.github.ad_os.moviemania.R.string.content_authority;
  */
 public class Utility {
 
-    public static void userChoice(Context context, String choice) {
+    public static void setUserChoice(Context context, String choice) {
         SharedPreferences preferences = context.getSharedPreferences(String.valueOf(content_authority), Context.MODE_PRIVATE);
         SharedPreferences.Editor e = preferences.edit();
         e.putString("view", choice);

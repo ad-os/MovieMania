@@ -12,9 +12,9 @@ import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
 import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 
-public class MainActivity extends AppCompatActivity implements MainFragment.Callback {
+public class MainActivity extends AppCompatActivity implements MainFragment.Callback, MainFragment.defaultCallback {
 
-    private boolean mTwoPane;
+    public static boolean mTwoPane;
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     public static final String LOG_TAG  = MainActivity.class.getSimpleName();
     @Override
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements MainFragment.Call
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         String choice = "popularity.desc";
-        Utility.userChoice(this, choice);
+        Utility.setUserChoice(this, choice);
         MovieSyncAdapter.initializeSyncAdapter(this);
     }
 
@@ -81,6 +81,21 @@ public class MainActivity extends AppCompatActivity implements MainFragment.Call
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(movieUri);
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public void defaultItemSelected(Uri movieUri) {
+        if (mTwoPane) {
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.DETAIL_URI, movieUri);
+
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_detail_fragment, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
         }
     }
 }

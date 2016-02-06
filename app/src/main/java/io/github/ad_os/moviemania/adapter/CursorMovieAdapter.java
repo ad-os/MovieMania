@@ -2,8 +2,6 @@ package io.github.ad_os.moviemania.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,12 +19,14 @@ import io.github.ad_os.moviemania.ui.MainFragment;
 /**
  * Created by adhyan on 13/1/16.
  */
-public class OnlineMovieAdapter extends CursorAdapter {
+public class CursorMovieAdapter extends CursorAdapter {
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
-    public static final String LOG_TAG = OnlineMovieAdapter.class.getSimpleName();
+    public static final String LOG_TAG = CursorMovieAdapter.class.getSimpleName();
+    private boolean mFavoriteLayout;
 
-    public OnlineMovieAdapter(Context context, Cursor c, int flags) {
+    public CursorMovieAdapter(Context context, Cursor c, int flags, boolean favorite_layout) {
         super(context, c, flags);
+        mFavoriteLayout = favorite_layout;
     }
 
     @Override
@@ -40,9 +40,17 @@ public class OnlineMovieAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
-        Picasso.with(context)
-                .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
-                .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        if (mFavoriteLayout) {
+            String[] urls = cursor.getString(MainFragment.COLUMN_LOCAL_URL).split(",", 2);
+            String url =  "file://" + urls[0];
+            Picasso.with(context)
+                    .load(url)
+                    .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        } else {
+            Picasso.with(context)
+                    .load(IMAGE_BASE_URL + cursor.getString(MainFragment.COL_MOVIE_THUMBNAIL))
+                    .placeholder(R.mipmap.backgroundvetical).into(viewHolder.poster);
+        }
         viewHolder.rating
                 .setText(getFloat(Float.parseFloat(cursor.getString(MainFragment.COL_MOVIE_RATING))/2) + "/5");
     }

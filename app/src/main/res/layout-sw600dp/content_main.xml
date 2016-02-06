@@ -1,0 +1,20 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:baselineAligned="false"
+              app:layout_behavior="@string/appbar_scrolling_view_behavior"
+              android:divider="?android:attr/dividerHorizontal"
+              android:orientation="horizontal">
+    <FrameLayout android:layout_width="0dp"
+                 android:id="@+id/movie_sort_order"
+                 android:layout_weight="1"
+                 android:layout_height="match_parent">
+    </FrameLayout>
+    <FrameLayout android:layout_width="0dp"
+                 android:id="@+id/movie_detail_fragment"
+                 android:layout_weight="1"
+                 android:layout_height="match_parent">
+    </FrameLayout>
+</LinearLayout>

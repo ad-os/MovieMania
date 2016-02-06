@@ -95,6 +95,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
         }
+
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
@@ -107,14 +108,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = getActivity().getIntent();
                 ContentValues value = new ContentValues();
                 String snackBar;
                 Cursor cursorMovie = getActivity().getContentResolver().query(
-                        intent.getData(),
+                        mUri,
                         MainFragment.MOVIE_COLUMNS,
                         MoviesContract.MovieEntry._ID + " = ?",
-                        new String[]{String.valueOf(ContentUris.parseId(intent.getData()))},
+                        new String[]{String.valueOf(ContentUris.parseId(mUri))},
                         null
                 );
                 if (cursorMovie != null) {

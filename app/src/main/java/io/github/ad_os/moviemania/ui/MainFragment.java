@@ -1,6 +1,5 @@
 package io.github.ad_os.moviemania.ui;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -22,7 +21,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.Utility;
-import io.github.ad_os.moviemania.adapter.OnlineMovieAdapter;
+import io.github.ad_os.moviemania.adapter.CursorMovieAdapter;
 import io.github.ad_os.moviemania.model.MoviesContract;
 import io.github.ad_os.moviemania.sync.MovieSyncAdapter;
 
@@ -34,9 +33,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
     private int mPosition = GridView.INVALID_POSITION;
+    public boolean favorite_layout = false;
     public static final String LOG_TAG = MainFragment.class.getSimpleName();
     private static final String SELECTED_KEY = "selected_position";
-    private OnlineMovieAdapter mOnlineMovieAdapter;
+    private CursorMovieAdapter mCursorMovieAdapter;
     public static final String[] MOVIE_COLUMNS = {
             MoviesContract.MovieEntry._ID,
             MoviesContract.MovieEntry.COLUMN_TITLE,
@@ -75,6 +75,10 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
         public void onItemSelected(Uri movieUri);
     }
 
+    public interface defaultCallback {
+        public void defaultItemSelected(Uri movieUri);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,22 +96,29 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
-        mOnlineMovieAdapter = new OnlineMovieAdapter(getActivity(), null, MOVIE_LOADER);
+        mCursorMovieAdapter = new CursorMovieAdapter(getActivity(), null, MOVIE_LOADER, favorite_layout);
         gridView = (GridView) rootView.findViewById(R.id.movies_grid_view);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                Uri movieUri;
                 if (cursor != null) {
-                    ((Callback) getActivity()).onItemSelected(MoviesContract.MovieEntry.buildMovieUriWithId(
-                            cursor.getLong(MainFragment.COL_MOVIE_ID)
-                    ));
-
+                    if (favorite_layout) {
+                        movieUri = MoviesContract.FavoriteMovieEntry.buildFavoriteMovieUriWithId(
+                                cursor.getLong(MainFragment.COL_MOVIE_ID)
+                        );
+                    } else {
+                        movieUri = MoviesContract.MovieEntry.buildMovieUriWithId(
+                                cursor.getLong(MainFragment.COL_MOVIE_ID)
+                        );
+                    }
+                    ((Callback) getActivity()).onItemSelected(movieUri);
                 }
                 mPosition = position;
             }
         });
-        gridView.setAdapter(mOnlineMovieAdapter);
+        gridView.setAdapter(mCursorMovieAdapter);
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
@@ -130,20 +141,21 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        String choice = "";
+        String choice;
         mPosition = GridView.INVALID_POSITION;
         gridView.smoothScrollToPosition(0);
+        favorite_layout = false;
         if (id == R.id.popular_label) {
             choice = "popularity.desc";
+            Utility.setUserChoice(getActivity(), choice);
             MovieSyncAdapter.syncImmediately(getActivity());
         } else if(id == R.id.highest_rated) {
             choice = "vote_count.desc";
+            Utility.setUserChoice(getActivity(), choice);
             MovieSyncAdapter.syncImmediately(getActivity());
         } else if (id == R.id.favorite) {
-            Intent intent = new Intent(getActivity(), FavoriteActivity.class);
-            startActivity(intent);
+            favorite_layout = true;
         }
-        Utility.userChoice(getActivity(), choice);
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
         return true;
     }
@@ -151,7 +163,11 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri movieUri;
-        movieUri = MoviesContract.MovieEntry.CONTENT_URI;
+        if (favorite_layout) {
+            movieUri = MoviesContract.FavoriteMovieEntry.CONTENT_URI;
+        } else {
+            movieUri = MoviesContract.MovieEntry.CONTENT_URI;
+        }
         return new CursorLoader(
                 getActivity(),
                 movieUri,
@@ -164,8 +180,8 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mOnlineMovieAdapter.swapCursor(data);
+    public void onLoadFinished(Loader<Cursor> loader, final Cursor data) {
+        mCursorMovieAdapter.swapCursor(data);
         if (mPosition != GridView.INVALID_POSITION) {
             gridView.smoothScrollToPosition(mPosition);
         }
@@ -173,7 +189,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mOnlineMovieAdapter.swapCursor(null);
+        mCursorMovieAdapter.swapCursor(null);
     }
 
 }
