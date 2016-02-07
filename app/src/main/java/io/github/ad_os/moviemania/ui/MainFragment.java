@@ -33,7 +33,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
     @Bind(R.id.movies_grid_view) GridView gridView;
     private static final int MOVIE_LOADER = 0;
     private int mPosition = GridView.INVALID_POSITION;
-    public boolean favorite_layout = false;
+    public static boolean favorite_layout = false;
     public static final String LOG_TAG = MainFragment.class.getSimpleName();
     private static final String SELECTED_KEY = "selected_position";
     private CursorMovieAdapter mCursorMovieAdapter;
@@ -96,7 +96,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, rootView);
-        mCursorMovieAdapter = new CursorMovieAdapter(getActivity(), null, MOVIE_LOADER, favorite_layout);
+        mCursorMovieAdapter = new CursorMovieAdapter(getActivity(), null, MOVIE_LOADER);
         gridView = (GridView) rootView.findViewById(R.id.movies_grid_view);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

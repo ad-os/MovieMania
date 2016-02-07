@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="@string/share_title"
+        android:id="@+id/menu_item_share"
+        app:showAsAction="always"
+        app:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>
+
+
+    <item
+        android:title="Play Video"
+        app:showAsAction="always"
+        android:id="@+id/trailer"
+        android:icon="@drawable/ic_play_circle_outline_white_36dp">
+    </item>
+</menu>

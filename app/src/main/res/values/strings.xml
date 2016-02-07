@@ -23,9 +23,10 @@
     <string name="popular_menu_string">Popular</string>
     <string name="highest_rated_menu_string">Highest Rated</string>
     <string name="favorite_movies_menu_string">Favorite Movies</string>
-    <string name="snackBar_notification_already">Movie already exists</string>
+    <string name="snackBar_notification_already">Movie removed from favorites</string>
     <string name="snackbar_new_notification">Movie saved to favorites</string>
     <string name="picture_count">PICTURE_COUNT</string>
     <string name="title_activity_favorite">Favorite</string>
     <string name="reviews">Reviews</string>
+    <string name="share_title">share</string>
 </resources>

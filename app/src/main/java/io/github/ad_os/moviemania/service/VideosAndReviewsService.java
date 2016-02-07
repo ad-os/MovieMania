@@ -1,9 +1,9 @@
-package io.github.ad_os.moviemania.ui;
+package io.github.ad_os.moviemania.service;
 
+    import android.app.IntentService;
 import android.content.ContentValues;
-import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -22,23 +22,26 @@ import io.github.ad_os.moviemania.BuildConfig;
 import io.github.ad_os.moviemania.model.MoviesContract;
 
 /**
- * Created by adhyan on 1/2/16.
+ * Created by adhyan on 7/2/16.
  */
-public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
+public class VideosAndReviewsService extends IntentService {
 
-    private Context mContext;
+
     private String mMovieTile;
-    public static final String LOG_TAG = FetchVideosAndReviews.class.getSimpleName();
+    public static final String LOG_TAG = VideosAndReviewsService.class.getSimpleName();
 
-    public FetchVideosAndReviews(Context context, String title) {
-        mContext = context;
-        mMovieTile = title;
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     */
+    public VideosAndReviewsService() {
+        super("VideosAndReviewsService");
     }
 
     @Override
-    protected Void doInBackground(String[]... params) {
-        String movieId = params[0][0];
-        String movieType = params[0][1];
+    protected void onHandleIntent(Intent intent) {
+        String movieId = intent.getStringExtra("id");
+        String movieType = intent.getStringExtra("type");
+        mMovieTile = intent.getStringExtra("title");
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
         final String APP_ID_PARAM = "api_key";
@@ -68,7 +71,6 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
             } else {
                 insertMovieReviews(moviesData);
             }
-            return null;
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -76,14 +78,13 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     public void insertMovieVideos(String moviesData) throws JSONException {
         String videoKeys = parseMovieVideos(moviesData);
         ContentValues values = new ContentValues();
         values.put(MoviesContract.MovieEntry.COLUMN_VIDEOS_URL, videoKeys);
-        mContext.getContentResolver().update(
+        getContentResolver().update(
                 MoviesContract.MovieEntry.CONTENT_URI,
                 values,
                 MoviesContract.MovieEntry.COLUMN_TITLE + " = ? ",
@@ -95,7 +96,7 @@ public class FetchVideosAndReviews extends AsyncTask<String[], Void, Void> {
         String content = parseMovieReviews(moviesData);
         ContentValues values = new ContentValues();
         values.put(MoviesContract.MovieEntry.COLUMN_REVIEWS, content);
-        mContext.getContentResolver().update(
+        getContentResolver().update(
                 MoviesContract.MovieEntry.CONTENT_URI,
                 values,
                 MoviesContract.MovieEntry.COLUMN_TITLE + " = ? ",

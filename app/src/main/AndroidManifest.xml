@@ -16,14 +16,14 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service android:name=".service.VideosAndReviewsService"/>
         <provider
             android:name=".model.MoviesProvider"
             android:authorities="io.github.ad_os.moviemania"
             android:exported="false"
             android:syncable="true">
         </provider>
-
-        <activity
+            <activity
             android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">

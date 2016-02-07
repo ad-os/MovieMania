@@ -2,6 +2,7 @@ package io.github.ad_os.moviemania.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.ui.MainActivity;
 import io.github.ad_os.moviemania.ui.MainFragment;
 
 /**
@@ -22,11 +24,9 @@ import io.github.ad_os.moviemania.ui.MainFragment;
 public class CursorMovieAdapter extends CursorAdapter {
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
     public static final String LOG_TAG = CursorMovieAdapter.class.getSimpleName();
-    private boolean mFavoriteLayout;
 
-    public CursorMovieAdapter(Context context, Cursor c, int flags, boolean favorite_layout) {
+    public CursorMovieAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
-        mFavoriteLayout = favorite_layout;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class CursorMovieAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
-        if (mFavoriteLayout) {
+        if (MainFragment.favorite_layout) {
             String[] urls = cursor.getString(MainFragment.COLUMN_LOCAL_URL).split(",", 2);
             String url =  "file://" + urls[0];
             Picasso.with(context)

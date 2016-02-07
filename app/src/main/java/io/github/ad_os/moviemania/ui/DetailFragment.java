@@ -1,5 +1,6 @@
 package io.github.ad_os.moviemania.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -14,18 +15,24 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +54,8 @@ import io.github.ad_os.moviemania.model.Review;
 public class DetailFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int MOVIE_DETAIL_LOADER = 0;
+    private ShareActionProvider mShareActionProvider;
+    private String MOVIE_SHARE_HASH_TAG = "#MovieMania";
     VideoThumbnailRecyclerViewAdapter mVideoThumbailAdapter;
     ReviewRecyclerViewAdapter mReviewAdapter;
     public static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w500/";
@@ -55,6 +64,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private Uri mUri;
     private ArrayList<String>  mkeysList;
     private ArrayList<Review> mReviewsList;
+    private String mfirstVideoKey;
     @Bind(R.id.movie_release_date) TextView mReleaseDate;
     @Bind(R.id.ratingBar) RatingBar mRatingBar;
     @Bind(R.id.movie_synopsis) TextView mSynopsis;
@@ -65,6 +75,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.recyclerview_videos) RecyclerView mVideoRecyclerView;
     @Bind(R.id.recyclerview_reviews) RecyclerView mReviewRecyclerView;
     @Bind(R.id.review_heading) TextView mReviewHeading;
+    @Bind(R.id.trailerHeading) TextView mTrailerHeading;
 
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
@@ -88,6 +99,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
@@ -95,7 +112,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
         }
-
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
@@ -117,9 +133,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         new String[]{String.valueOf(ContentUris.parseId(mUri))},
                         null
                 );
-                if (cursorMovie != null) {
-                    cursorMovie.moveToFirst();
-                }
+                cursorMovie.moveToFirst();
                 Cursor cursorFavMovie = getActivity().getContentResolver().query(
                         MoviesContract.FavoriteMovieEntry.CONTENT_URI,
                         null,
@@ -147,15 +161,85 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                             values
                     );
                     snackBar = getActivity().getString(R.string.snackbar_new_notification);
+                    mFab.setImageResource(R.mipmap.ic_favorite_black_24dp);
                 } else {
                     snackBar = getActivity().getString(R.string.snackBar_notification_already);
+                    mFab.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+                    int numdeleted = getActivity().getContentResolver().delete(
+                            MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                            MoviesContract.FavoriteMovieEntry.COLUMN_TITLE + " =  ? ",
+                            new String[]{cursorMovie.getString(COL_MOVIE_TITLE)}
+
+                    );
+                    Log.d(LOG_TAG, "onClick: " + numdeleted);
                 }
                 Snackbar.make(view,snackBar, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
+        Cursor cursorMovie = getActivity().getContentResolver().query(
+                mUri,
+                MainFragment.MOVIE_COLUMNS,
+                MoviesContract.MovieEntry._ID + " = ?",
+                new String[]{String.valueOf(ContentUris.parseId(mUri))},
+                null
+        );
+        cursorMovie.moveToFirst();
+        Cursor cursorFavMovie = getActivity().getContentResolver().query(
+                MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                null,
+                MoviesContract.FavoriteMovieEntry.COLUMN_TITLE + " =  ? ",
+                new String[]{cursorMovie.getString(COL_MOVIE_TITLE)},
+                null
+        );
+        if (cursorFavMovie.moveToFirst()) {
+            mFab.setImageResource(R.mipmap.ic_favorite_black_24dp);
+        } else {
+            mFab.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        }
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.detailmenufragment, menu);
+        MenuItem menuItem = menu.findItem(R.id.menu_item_share);
+        mShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        if (mfirstVideoKey != null) {
+            mShareActionProvider.setShareIntent(createShareMovieIntent());
+        }
+    }
+
+
+    public Intent createShareMovieIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "http://www.youtube.com/watch?v="+ mfirstVideoKey
+                + MOVIE_SHARE_HASH_TAG);
+        return shareIntent;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.trailer) {
+            Log.d(LOG_TAG, "onOptionsItemSelected: " + mfirstVideoKey);
+            if (mfirstVideoKey != null) {
+                try{
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + mfirstVideoKey));
+                    getActivity().startActivity(intent);
+                }catch (ActivityNotFoundException ex){
+                    Intent intent=new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("http://www.youtube.com/watch?v="+ mfirstVideoKey));
+                    getActivity().startActivity(intent);
+                }
+            } else {
+                Toast.makeText(getActivity(), "No trailer available", Toast.LENGTH_SHORT).show();
+            }
+        }
+        return true;
     }
 
     @Override
@@ -176,15 +260,24 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (!data.moveToFirst()) {return; }
+        String[] videoKeys = new String[]{};
+        String[] authorAndContentList = new String[]{};
         String releaseDate = data.getString(MainFragment.COL_RELEASE_DATE);
         mReleaseDate.setText(releaseDate);
         String rating = data.getString(MainFragment.COL_MOVIE_RATING);
         mRatingBar.setRating(Float.parseFloat(rating)/2);
         mCollapsingToolbarLayout.setTitle(data.getString(MainFragment.COL_MOVIE_TITLE));
         String posterString = data.getString(MainFragment.COL_POSTER);
-        String[] videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
+        if (data.getString(MainFragment.COLUMN_VIDEOS_URL) != null) {
+            videoKeys = data.getString(MainFragment.COLUMN_VIDEOS_URL).split(",");
+            mfirstVideoKey = videoKeys[0];
+        }
         mkeysList = new ArrayList<>(Arrays.asList(videoKeys));
-        String[] authorAndContentList = data.getString(MainFragment.COLUMN_REVIEWS).split(Pattern.quote("||"));
+        if (data.getString(MainFragment.COLUMN_REVIEWS) != null) {
+            authorAndContentList = data.getString(MainFragment.COLUMN_REVIEWS).split(Pattern.quote("||"));
+        } else {
+            mTrailerHeading.setText("No trailer available");
+        }
         if (authorAndContentList.length > 0) {
             String[] authors = authorAndContentList[0].split(Pattern.quote("|"));
             String[] content = authorAndContentList[1].split(Pattern.quote("|"));
@@ -201,7 +294,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }
         if (Utility.isNetworkAvailable(getActivity())) {
             Utility.setImage(getActivity(), mImageView, IMAGE_BASE_URL + posterString);
-        } else {
+        } else if (data.getString(MainFragment.COLUMN_LOCAL_URL) != null) {
             String[] urls = data.getString(MainFragment.COLUMN_LOCAL_URL).split(",", 2);
             String url =  "file://" + urls[1];
             Utility.setImage(getActivity(), mImageView, url);

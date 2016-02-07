@@ -231,7 +231,7 @@ public class MoviesProvider extends ContentProvider{
             case FAVORITE_MOVIE_WITH_ID:{
                 numDeleted = db.delete(
                         MoviesContract.FavoriteMovieEntry.TABLE_FAVORITES,
-                        MoviesContract.MovieEntry._ID + " = ? ",
+                        MoviesContract.FavoriteMovieEntry._ID + " = ? ",
                         new String[] {String.valueOf(ContentUris.parseId(uri))}
                 );
                 break;

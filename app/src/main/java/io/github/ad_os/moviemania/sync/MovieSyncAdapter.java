@@ -7,6 +7,7 @@ import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
@@ -31,9 +32,9 @@ import java.util.Vector;
 
 import io.github.ad_os.moviemania.BuildConfig;
 import io.github.ad_os.moviemania.R;
+import io.github.ad_os.moviemania.service.VideosAndReviewsService;
 import io.github.ad_os.moviemania.model.Movie;
 import io.github.ad_os.moviemania.model.MoviesContract;
-import io.github.ad_os.moviemania.ui.FetchVideosAndReviews;
 
 /**
  * Created by adhyan on 27/1/16.
@@ -100,6 +101,14 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    public void insertVideosOrReviews(String id, String type, String title) {
+        Intent intent = new Intent(getContext(), VideosAndReviewsService.class);
+        intent.putExtra("id", id);
+        intent.putExtra("type", type);
+        intent.putExtra("title", title);
+        getContext().startService(intent);
+    }
+
     public void insertMovies(String moviesData) {
         Movie[] mMovies;
         try {
@@ -114,10 +123,8 @@ public class MovieSyncAdapter extends AbstractThreadedSyncAdapter {
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, movie.getBackPosterString());
                 contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movie.getId());
-                FetchVideosAndReviews fetchVideos = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
-                fetchVideos.execute(new String[]{movie.getId(), "videos"});
-                FetchVideosAndReviews fetchReviews = new FetchVideosAndReviews(getContext(), movie.getMovieTitle());
-                fetchReviews.execute(new String[]{movie.getId(), "reviews"});
+                insertVideosOrReviews(movie.getId(), "videos", movie.getMovieTitle());
+                insertVideosOrReviews(movie.getId(), "reviews", movie.getMovieTitle());
                 cVVector.add(contentValues);
             }
             if (cVVector.size() > 0) {
