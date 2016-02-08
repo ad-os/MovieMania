@@ -29,7 +29,11 @@
 * ### Sharing Functionality
   * Movie Details View includes an Action Bar item that allows the user to share the first trailer video URL from the list of trailers
   * App uses a share Intent to expose the external youtube URL for the trailer.
+
+* ### Offline functionality
+  * Favorite movies are shown when no netwrok available :smile:   
  
+
  ![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/a.png)
 ![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/d.png)
 ![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/c.png)
