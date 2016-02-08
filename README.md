@@ -29,3 +29,8 @@
 * ### Sharing Functionality
   * Movie Details View includes an Action Bar item that allows the user to share the first trailer video URL from the list of trailers
   * App uses a share Intent to expose the external youtube URL for the trailer.
+ 
+ ![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/1.png)
+![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/4.png)
+![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/3.png)
+![Alt text](https://github.com/ad-os/MovieMania/blob/master/app/src/main/res/drawable/2.png)
