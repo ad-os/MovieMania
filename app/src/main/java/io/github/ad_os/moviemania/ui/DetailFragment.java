@@ -77,6 +77,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Bind(R.id.review_heading) TextView mReviewHeading;
     @Bind(R.id.trailerHeading) TextView mTrailerHeading;
 
+    public static final int COL_MOVIE_ID = 0;
     public static final int COL_MOVIE_TITLE = 1;
     public static final int COL_MOVIE_THUMBNAIL = 2;
     public static final int COL_MOVIE_PLOT = 3;
@@ -111,6 +112,32 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+        } else {
+            Cursor cursor;
+            if (MainFragment.favorite_layout) {
+                cursor = getActivity().getContentResolver().query(
+                        MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                        MainFragment.MOVIE_COLUMNS,
+                        null,
+                        null,
+                        MoviesContract.MovieEntry._ID + " ASC LIMIT 1"
+                );
+                cursor.moveToFirst();
+                long id = cursor.getLong(COL_MOVIE_ID);
+                mUri = MoviesContract.FavoriteMovieEntry.buildFavoriteMovieUriWithId(id);
+            } else {
+                cursor = getActivity().getContentResolver().query(
+                        MoviesContract.MovieEntry.CONTENT_URI,
+                        MainFragment.MOVIE_COLUMNS,
+                        null,
+                        null,
+                        MoviesContract.MovieEntry._ID + " ASC LIMIT 1"
+                );
+                cursor.moveToFirst();
+                long id = cursor.getLong(COL_MOVIE_ID);
+                mUri = MoviesContract.MovieEntry.buildMovieUriWithId(id);
+            }
+            cursor.close();
         }
         final MovieImageUrl movieImageUrl = new MovieImageUrl();
         ButterKnife.bind(this, rootView);
@@ -173,31 +200,39 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     );
                     Log.d(LOG_TAG, "onClick: " + numdeleted);
                 }
+                cursorFavMovie.close();
+                cursorMovie.close();
                 Snackbar.make(view,snackBar, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
-        Cursor cursorMovie = getActivity().getContentResolver().query(
-                mUri,
-                MainFragment.MOVIE_COLUMNS,
-                MoviesContract.MovieEntry._ID + " = ?",
-                new String[]{String.valueOf(ContentUris.parseId(mUri))},
-                null
-        );
-        cursorMovie.moveToFirst();
-        Cursor cursorFavMovie = getActivity().getContentResolver().query(
-                MoviesContract.FavoriteMovieEntry.CONTENT_URI,
-                null,
-                MoviesContract.FavoriteMovieEntry.COLUMN_TITLE + " =  ? ",
-                new String[]{cursorMovie.getString(COL_MOVIE_TITLE)},
-                null
-        );
-        if (cursorFavMovie.moveToFirst()) {
-            mFab.setImageResource(R.mipmap.ic_favorite_black_24dp);
-        } else {
-            mFab.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        if (mUri != null) {
+            Cursor cursorMovie = getActivity().getContentResolver().query(
+                    mUri,
+                    MainFragment.MOVIE_COLUMNS,
+                    MoviesContract.MovieEntry._ID + " = ?",
+                    new String[]{String.valueOf(ContentUris.parseId(mUri))},
+                    null
+            );
+            cursorMovie.moveToFirst();
+            Cursor cursorFavMovie = getActivity().getContentResolver().query(
+                    MoviesContract.FavoriteMovieEntry.CONTENT_URI,
+                    null,
+                    MoviesContract.FavoriteMovieEntry.COLUMN_TITLE + " =  ? ",
+                    new String[]{cursorMovie.getString(COL_MOVIE_TITLE)},
+                    null
+            );
+            if (cursorFavMovie.moveToFirst()) {
+                mFab.setImageResource(R.mipmap.ic_favorite_black_24dp);
+            } else {
+                mFab.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+            }
+            cursorFavMovie.close();
+            cursorMovie.close();
         }
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (!MainActivity.mTwoPane) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         return rootView;
     }
 
@@ -210,6 +245,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (mfirstVideoKey != null) {
             mShareActionProvider.setShareIntent(createShareMovieIntent());
         }
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
 

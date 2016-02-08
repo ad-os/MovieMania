@@ -35,6 +35,8 @@ import io.github.ad_os.moviemania.R;
 import io.github.ad_os.moviemania.service.VideosAndReviewsService;
 import io.github.ad_os.moviemania.model.Movie;
 import io.github.ad_os.moviemania.model.MoviesContract;
+import io.github.ad_os.moviemania.ui.DetailFragment;
+import io.github.ad_os.moviemania.ui.MainActivity;
 
 /**
  * Created by adhyan on 27/1/16.

@@ -29,4 +29,5 @@
     <string name="title_activity_favorite">Favorite</string>
     <string name="reviews">Reviews</string>
     <string name="share_title">share</string>
+    <string name="no_detail_info">Click on the Image to get it\'s details</string>
 </resources>

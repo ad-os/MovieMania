@@ -135,7 +135,9 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
         inflater.inflate(R.menu.mainmenufragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -157,7 +159,7 @@ public class MainFragment extends Fragment implements LoaderManager.LoaderCallba
             favorite_layout = true;
         }
         getLoaderManager().restartLoader(MOVIE_LOADER, null, this);
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
